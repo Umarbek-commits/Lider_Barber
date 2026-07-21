@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -50,23 +51,26 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(t.heroText, style: const TextStyle(height: 1.6, color: Colors.white70)),
           const SizedBox(height: 20),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _ContactTile(
-                icon: Icons.location_on_rounded,
-                title: BusinessInfo.city,
-                subtitle: t.onMap,
-                url: BusinessInfo.mapUrl,
-              ),
-              _ContactTile(
-                icon: Icons.camera_alt_rounded,
-                title: BusinessInfo.instagramHandle,
-                subtitle: 'Instagram',
-                url: BusinessInfo.instagramUrl,
-              ),
-            ],
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ContactTile(
+                  icon: const Icon(Icons.location_on_rounded, size: 20, color: AppColors.gold),
+                  title: BusinessInfo.city,
+                  subtitle: t.onMap,
+                  url: BusinessInfo.mapUrl,
+                ),
+                const SizedBox(height: 12),
+                _ContactTile(
+                  icon: const FaIcon(FontAwesomeIcons.instagram, size: 20, color: AppColors.gold),
+                  title: BusinessInfo.instagramHandle,
+                  subtitle: 'Instagram',
+                  url: BusinessInfo.instagramUrl,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           FilledButton.icon(
@@ -89,7 +93,7 @@ class _ContactTile extends StatelessWidget {
     required this.url,
   });
 
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String subtitle;
   final String url;
@@ -107,7 +111,6 @@ class _ContactTile extends StatelessWidget {
           border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 38,
@@ -116,17 +119,20 @@ class _ContactTile extends StatelessWidget {
                 color: AppColors.gold.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 20, color: AppColors.gold),
+              alignment: Alignment.center,
+              child: icon,
             ),
             const SizedBox(width: 12),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                ],
+              ),
             ),
           ],
         ),
