@@ -18,7 +18,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: _AuthRefresh(ref),
     redirect: (context, state) {
       final path = state.uri.path;
-      final signedIn = Env.hasSupabase && supabase.auth.currentUser != null;
+      final signedIn = Env.hasSupabase && maybeCurrentUser != null;
       final user = ref.read(currentUserProvider).value;
 
       // Don't leave an already-signed-in user sitting on the login screen

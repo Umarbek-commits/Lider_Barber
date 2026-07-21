@@ -60,7 +60,7 @@ class HomePage extends ConsumerWidget {
           Text(BusinessInfo.name,
               style: TextStyle(fontSize: isMobile ? 30 : 40, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
-          const Text('Современный барбершоп в Бишкеке',
+          const Text('Современный барбершоп в Нокате',
               style: TextStyle(fontSize: 18, color: AppColors.gold)),
           const SizedBox(height: 12),
           const Text(

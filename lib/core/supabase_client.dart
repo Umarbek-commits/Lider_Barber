@@ -17,3 +17,13 @@ Future<void> initSupabase() async {
 
 /// Convenience accessor. Throws if used before [initSupabase] with valid keys.
 SupabaseClient get supabase => Supabase.instance.client;
+
+/// The current auth user, or null when Supabase isn't initialized yet (e.g. in
+/// widget tests). Never throws — safe to call from router redirects.
+User? get maybeCurrentUser {
+  try {
+    return Supabase.instance.client.auth.currentUser;
+  } catch (_) {
+    return null;
+  }
+}

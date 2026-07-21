@@ -1,13 +1,14 @@
 {
-    "name": "lider_barber",
-    "short_name": "lider_barber",
+    "name": "Lider Barber — онлайн-запись",
+    "short_name": "Lider Barber",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#060606",
+    "theme_color": "#0F0F0F",
+    "description": "Онлайн-запись к барберу Lider Barber в Ноокат: стрижка, борода, комплекс. Свободное время — в пару кликов.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "lang": "ru",
     "icons": [
         {
             "src": "icons/Icon-192.png",

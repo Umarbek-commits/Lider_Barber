@@ -68,14 +68,18 @@ final worksOnDateProvider =
 /// Emits on every auth state change (login / logout / token refresh).
 final authStateProvider = StreamProvider<AuthState?>((ref) {
   if (!Env.hasSupabase) return const Stream.empty();
-  return supabase.auth.onAuthStateChange;
+  try {
+    return supabase.auth.onAuthStateChange;
+  } catch (_) {
+    return const Stream.empty(); // Supabase not initialized (e.g. in tests)
+  }
 });
 
 /// The current authenticated profile (with role), or null when signed out.
 final currentUserProvider = FutureProvider<AppUser?>((ref) async {
   if (!Env.hasSupabase) return null;
   ref.watch(authStateProvider); // re-run when auth changes
-  final uid = supabase.auth.currentUser?.id;
+  final uid = maybeCurrentUser?.id;
   if (uid == null) return null;
   final row =
       await supabase.from('users').select().eq('id', uid).maybeSingle();
