@@ -8,6 +8,7 @@ import '../../../data/providers.dart';
 import '../../../models/booking.dart';
 import '../../../models/booking_status.dart';
 import '../../../models/service.dart';
+import '../../../shared/widgets/skeleton.dart';
 
 class ScheduleTab extends ConsumerStatefulWidget {
   const ScheduleTab({super.key});
@@ -82,7 +83,8 @@ class _ScheduleTabState extends ConsumerState<ScheduleTab> {
         ),
         Expanded(
           child: bookings.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Padding(
+                padding: EdgeInsets.all(20), child: SkeletonList(count: 5, cardHeight: 72)),
             error: (e, _) => Center(child: Text('Ошибка: $e')),
             data: (list) => list.isEmpty
                 ? const Center(child: Text('На этот день записей нет', style: TextStyle(color: Colors.white60)))

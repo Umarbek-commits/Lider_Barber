@@ -6,6 +6,7 @@ import '../../app/theme.dart';
 import '../../data/providers.dart';
 import '../../l10n/l10n.dart';
 import '../../shared/widgets/page_shell.dart';
+import '../../shared/widgets/skeleton.dart';
 
 /// Standalone services page (SEO route /services).
 class ServicesPage extends ConsumerWidget {
@@ -24,7 +25,7 @@ class ServicesPage extends ConsumerWidget {
           Text(t.servicesSubtitle, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 24),
           services.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const SkeletonList(count: 4, cardHeight: 72),
             error: (e, _) => Text(t.error(e)),
             data: (list) => Column(
               children: list

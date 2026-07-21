@@ -37,48 +37,25 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= 760;
     final user = ref.watch(currentUserProvider).value;
 
-    final appBar = AppBar(
-      title: Text('${BusinessInfo.name} • панель'),
-      actions: [
-        if (user != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Center(child: Text(user.phone, style: const TextStyle(color: Colors.white54, fontSize: 13))),
-          ),
-        IconButton(onPressed: _signOut, icon: const Icon(Icons.logout_rounded), tooltip: 'Выйти'),
-      ],
-    );
-
-    if (isWide) {
-      return Scaffold(
-        appBar: appBar,
-        body: Row(
-          children: [
-            NavigationRail(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
-              labelType: NavigationRailLabelType.all,
-              destinations: _destinations
-                  .map((d) => NavigationRailDestination(
-                        icon: Icon(d.icon),
-                        selectedIcon: Icon(d.selected),
-                        label: Text(d.label),
-                      ))
-                  .toList(),
-            ),
-            const VerticalDivider(width: 1),
-            Expanded(child: IndexedStack(index: _index, children: _tabs)),
-          ],
-        ),
-      );
-    }
-
     return Scaffold(
-      appBar: appBar,
-      body: IndexedStack(index: _index, children: _tabs),
+      appBar: AppBar(
+        title: Text('${BusinessInfo.name} • панель'),
+        actions: [
+          if (user != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Center(
+                  child: Text(user.phone,
+                      style: const TextStyle(color: Colors.white54, fontSize: 13))),
+            ),
+          IconButton(
+              onPressed: _signOut, icon: const Icon(Icons.logout_rounded), tooltip: 'Выйти'),
+        ],
+      ),
+      // Same bottom NavigationBar style as the client app (via app theme).
+      body: SafeArea(child: IndexedStack(index: _index, children: _tabs)),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

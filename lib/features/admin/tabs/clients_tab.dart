@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../app/theme.dart';
 import '../../../data/admin_providers.dart';
 import '../../../models/client.dart';
+import '../../../shared/widgets/skeleton.dart';
 
 class ClientsTab extends ConsumerStatefulWidget {
   const ClientsTab({super.key});
@@ -41,7 +42,8 @@ class _ClientsTabState extends ConsumerState<ClientsTab> {
         ),
         Expanded(
           child: clients.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Padding(
+                padding: EdgeInsets.all(20), child: SkeletonList(count: 6, cardHeight: 64)),
             error: (e, _) => Center(child: Text('Ошибка: $e')),
             data: (list) {
               final filtered = _query.isEmpty

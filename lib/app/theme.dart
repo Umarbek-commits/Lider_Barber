@@ -31,5 +31,27 @@ ThemeData buildAppTheme() {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       ),
     ),
+    // One consistent bottom bar for both the client and the admin panel.
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: const Color(0xFF0E0E0E),
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: AppColors.gold.withValues(alpha: 0.18),
+      height: 64,
+      elevation: 0,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      iconTheme: WidgetStateProperty.resolveWith(
+        (states) => IconThemeData(
+          size: 24,
+          color: states.contains(WidgetState.selected) ? AppColors.gold : Colors.white54,
+        ),
+      ),
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (states) => TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: states.contains(WidgetState.selected) ? AppColors.gold : Colors.white54,
+        ),
+      ),
+    ),
   );
 }

@@ -51,11 +51,21 @@ class HomePage extends ConsumerWidget {
           Text(t.heroText, style: const TextStyle(height: 1.6, color: Colors.white70)),
           const SizedBox(height: 20),
           Wrap(
-            spacing: 10,
-            runSpacing: 10,
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              _InfoChip(label: '📍 ${BusinessInfo.addressLabel}', url: BusinessInfo.mapUrl),
-              _InfoChip(label: '📸 ${BusinessInfo.instagramHandle}', url: BusinessInfo.instagramUrl),
+              _ContactTile(
+                icon: Icons.location_on_rounded,
+                title: BusinessInfo.city,
+                subtitle: t.onMap,
+                url: BusinessInfo.mapUrl,
+              ),
+              _ContactTile(
+                icon: Icons.camera_alt_rounded,
+                title: BusinessInfo.instagramHandle,
+                subtitle: 'Instagram',
+                url: BusinessInfo.instagramUrl,
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -70,26 +80,57 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label, this.url});
-  final String label;
-  final String? url;
+/// Tappable contact tile (address / Instagram) with a gold icon badge.
+class _ContactTile extends StatelessWidget {
+  const _ContactTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.url,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String url;
 
   @override
   Widget build(BuildContext context) {
-    final chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white10,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(label, style: const TextStyle(fontSize: 13)),
-    );
-    if (url == null) return chip;
     return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: () => launchUrl(Uri.parse(url!), mode: LaunchMode.externalApplication),
-      child: chip,
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 20, color: AppColors.gold),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

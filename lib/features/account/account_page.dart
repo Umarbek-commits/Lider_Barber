@@ -10,6 +10,7 @@ import '../../models/booking.dart';
 import '../../models/booking_status.dart';
 import '../auth/auth_controller.dart';
 import '../../shared/widgets/page_shell.dart';
+import '../../shared/widgets/skeleton.dart';
 
 /// Client cabinet: upcoming bookings (with cancel) and visit history (with repeat).
 class AccountPage extends ConsumerWidget {
@@ -49,8 +50,7 @@ class AccountPage extends ConsumerWidget {
             Text(user.name ?? user.phone, style: const TextStyle(color: Colors.white60)),
           const SizedBox(height: 20),
           bookings.when(
-            loading: () => const Center(
-                child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator())),
+            loading: () => const SkeletonList(count: 3, cardHeight: 64),
             error: (e, _) => Text(t.error(e)),
             data: (list) => _content(context, ref, t, list),
           ),

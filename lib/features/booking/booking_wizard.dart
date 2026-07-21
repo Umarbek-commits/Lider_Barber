@@ -8,6 +8,7 @@ import '../../data/booking_repository.dart';
 import '../../data/providers.dart';
 import '../../l10n/l10n.dart';
 import '../../models/service.dart';
+import '../../shared/widgets/skeleton.dart';
 import '../auth/auth_controller.dart';
 
 /// Five-step booking wizard, gated behind Google sign-in: service → date →
@@ -176,8 +177,7 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
   Widget _serviceStep(T t, bool isMobile) {
     final services = ref.watch(servicesProvider);
     return services.when(
-      loading: () => const Padding(
-          padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
+      loading: () => const SkeletonList(count: 4, cardHeight: 88),
       error: (e, _) => Text(t.error(e)),
       data: (list) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,

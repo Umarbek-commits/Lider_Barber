@@ -66,6 +66,7 @@ class T {
   String durationLabel(int min) =>
       _('Длительность: $min мин', 'Узактыгы: $min мүн');
   String get minutesShort => _('мин', 'мүн');
+  String get onMap => _('На карте', 'Картада');
 
   // Services page
   String get ourServices => _('Наши услуги', 'Биздин кызматтар');

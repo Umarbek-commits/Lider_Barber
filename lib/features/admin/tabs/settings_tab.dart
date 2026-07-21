@@ -6,6 +6,7 @@ import '../../../app/theme.dart';
 import '../../../data/admin_providers.dart';
 import '../../../models/schedule.dart';
 import '../../../models/schedule_exception.dart';
+import '../../../shared/widgets/skeleton.dart';
 
 const _weekdayNames = {
   1: 'Понедельник',
@@ -31,7 +32,7 @@ class SettingsTab extends ConsumerWidget {
         const Text('Рабочий график', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
         const SizedBox(height: 12),
         schedules.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SkeletonList(count: 7, cardHeight: 64),
           error: (e, _) => Text('Ошибка: $e'),
           data: (list) {
             final byWeekday = {for (final s in list) s.weekday: s};
@@ -63,7 +64,7 @@ class SettingsTab extends ConsumerWidget {
             style: TextStyle(color: Colors.white60)),
         const SizedBox(height: 12),
         exceptions.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const SkeletonList(count: 2, cardHeight: 52),
           error: (e, _) => Text('Ошибка: $e'),
           data: (list) => list.isEmpty
               ? const Text('Исключений нет', style: TextStyle(color: Colors.white60))
