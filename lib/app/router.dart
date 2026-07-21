@@ -22,14 +22,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       final signedIn = Env.hasSupabase && maybeCurrentUser != null;
       final user = ref.read(currentUserProvider).value;
 
-      // Don't leave an already-signed-in user sitting on the login screen
-      // (covers the OAuth redirect returning to the app).
-      if (path == '/login' && signedIn) {
-        return user?.isAdmin == true ? '/admin' : '/account';
+      // Route a signed-in user off the login screen — but only once the role is
+      // known, otherwise the redirect races the profile load and an admin lands
+      // in the client cabinet. While the profile loads, stay put; the router
+      // re-evaluates when currentUserProvider resolves.
+      if (path == '/login' && signedIn && user != null) {
+        return user.isAdmin ? '/admin' : '/account';
       }
 
-      // Client cabinet requires any signed-in user.
-      if (path == '/account' && !signedIn) return '/login';
+      // Client cabinet: require sign-in; an admin belongs in the panel.
+      if (path == '/account') {
+        if (!signedIn) return '/login';
+        if (user?.isAdmin == true) return '/admin';
+      }
 
       if (!path.startsWith('/admin')) return null;
 
