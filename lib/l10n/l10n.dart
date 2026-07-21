@@ -48,6 +48,7 @@ class T {
   String _(String ru, String ky) => locale == AppLocale.ru ? ru : ky;
 
   // Nav
+  String get navHome => _('Главная', 'Башкы');
   String get navServices => _('Услуги', 'Кызматтар');
   String get navBook => _('Запись', 'Жазылуу');
   String get navCabinet => _('Кабинет', 'Кабинет');
