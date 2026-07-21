@@ -5,9 +5,11 @@ import '../core/env.dart';
 import '../core/supabase_client.dart';
 import '../features/booking/booking_logic.dart';
 import '../models/app_user.dart';
+import '../models/booking.dart';
 import '../models/service.dart';
 import 'booking_repository.dart';
 import 'catalog_repository.dart';
+import 'client_repository.dart';
 
 /// Whether the app is wired to a live backend.
 final backendConfiguredProvider = Provider<bool>((_) => Env.hasSupabase);
@@ -73,6 +75,14 @@ final authStateProvider = StreamProvider<AuthState?>((ref) {
   } catch (_) {
     return const Stream.empty(); // Supabase not initialized (e.g. in tests)
   }
+});
+
+final clientRepositoryProvider = Provider<ClientRepository>((_) => const ClientRepository());
+
+/// The signed-in client's own bookings (newest first).
+final myBookingsProvider = FutureProvider<List<Booking>>((ref) {
+  ref.watch(authStateProvider);
+  return ref.watch(clientRepositoryProvider).myBookings();
 });
 
 /// The current authenticated profile (with role), or null when signed out.

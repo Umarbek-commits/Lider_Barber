@@ -50,7 +50,7 @@ class _TopNav extends StatelessWidget {
     final links = [
       _NavLink('Услуги', '/services'),
       _NavLink('Запись', '/book'),
-      _NavLink('Кабинет', '/login'),
+      _NavLink('Кабинет', '/account'),
     ];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

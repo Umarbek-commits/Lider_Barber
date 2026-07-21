@@ -49,7 +49,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _goAfterLogin() async {
     final user = await ref.refresh(currentUserProvider.future);
     if (!mounted) return;
-    context.go(user?.isAdmin == true ? '/admin' : '/');
+    context.go(user?.isAdmin == true ? '/admin' : '/account');
   }
 
   @override

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/env.dart';
 import '../core/supabase_client.dart';
 import '../data/providers.dart';
+import '../features/account/account_page.dart';
 import '../features/admin/admin_shell.dart';
 import '../features/auth/login_page.dart';
 import '../features/booking/booking_page.dart';
@@ -24,8 +25,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Don't leave an already-signed-in user sitting on the login screen
       // (covers the OAuth redirect returning to the app).
       if (path == '/login' && signedIn) {
-        return user?.isAdmin == true ? '/admin' : '/';
+        return user?.isAdmin == true ? '/admin' : '/account';
       }
+
+      // Client cabinet requires any signed-in user.
+      if (path == '/account' && !signedIn) return '/login';
 
       if (!path.startsWith('/admin')) return null;
 
@@ -38,8 +42,13 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/', builder: (_, _) => const HomePage()),
       GoRoute(path: '/services', builder: (_, _) => const ServicesPage()),
-      GoRoute(path: '/book', builder: (_, _) => const BookingPage()),
+      GoRoute(
+        path: '/book',
+        builder: (_, state) =>
+            BookingPage(serviceId: state.uri.queryParameters['service']),
+      ),
       GoRoute(path: '/login', builder: (_, _) => const LoginPage()),
+      GoRoute(path: '/account', builder: (_, _) => const AccountPage()),
       GoRoute(path: '/admin', builder: (_, _) => const AdminShell()),
     ],
     errorBuilder: (_, state) => Scaffold(
