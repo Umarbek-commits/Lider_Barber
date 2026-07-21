@@ -5,10 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/theme.dart';
 import '../../core/constants.dart';
-import '../../data/providers.dart';
 import '../../l10n/l10n.dart';
-import '../../models/service.dart';
-import '../booking/booking_wizard.dart';
 import '../../shared/widgets/page_shell.dart';
 
 class HomePage extends ConsumerWidget {
@@ -17,7 +14,6 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 760;
-    final services = ref.watch(servicesProvider);
     final t = ref.watch(tProvider);
 
     return PageShell(
@@ -25,26 +21,14 @@ class HomePage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _hero(context, t, isMobile),
-          const SizedBox(height: 40),
-          _SectionTitle(t.servicesTitle),
-          const SizedBox(height: 16),
-          services.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text(t.error(e)),
-            data: (list) => _servicesGrid(list, t, isMobile),
-          ),
-          const SizedBox(height: 40),
-          _SectionTitle(t.onlineBooking),
-          const SizedBox(height: 16),
-          const BookingWizard(),
-          const SizedBox(height: 48),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
   Widget _hero(BuildContext context, T t, bool isMobile) {
-    final hero = Container(
+    return Container(
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 24 : 40),
       decoration: BoxDecoration(
@@ -83,46 +67,7 @@ class HomePage extends ConsumerWidget {
         ],
       ),
     );
-    return hero;
   }
-
-  Widget _servicesGrid(List<Service> list, T t, bool isMobile) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      children: list.map((s) {
-        return Container(
-          width: isMobile ? double.infinity : 260,
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(s.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Text(s.priceLabel,
-                  style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Text(t.durationLabel(s.durationMin),
-                  style: const TextStyle(color: Colors.white60)),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) =>
-      Text(text, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700));
 }
 
 class _InfoChip extends StatelessWidget {
