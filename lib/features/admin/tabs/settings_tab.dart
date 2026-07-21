@@ -114,35 +114,40 @@ class _WeekdayRow extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.white12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(_weekdayNames[weekday]!, style: const TextStyle(fontWeight: FontWeight.w600)),
-          ),
-          Expanded(
-            child: isDayOff
-                ? const Text('Выходной', style: TextStyle(color: Colors.white54))
-                : Row(
-                    children: [
-                      _TimeButton(label: start, onPick: (t) => save(s: t)),
-                      const Text('  –  ', style: TextStyle(color: Colors.white38)),
-                      _TimeButton(label: end, onPick: (t) => save(e: t)),
-                    ],
-                  ),
-          ),
+          // Header: weekday name + day-off toggle.
           Row(
             children: [
-              const Text('Выходной', style: TextStyle(color: Colors.white38, fontSize: 12)),
+              Expanded(
+                child: Text(_weekdayNames[weekday]!,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              Text('Выходной',
+                  style: TextStyle(
+                      color: isDayOff ? AppColors.gold : Colors.white38, fontSize: 12)),
               Switch(value: isDayOff, onChanged: (v) => save(dayOff: v)),
             ],
           ),
+          // Working hours (only when not a day off).
+          if (!isDayOff)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 4),
+              child: Row(
+                children: [
+                  _TimeButton(label: start, onPick: (t) => save(s: t)),
+                  const Text('  –  ', style: TextStyle(color: Colors.white38)),
+                  _TimeButton(label: end, onPick: (t) => save(e: t)),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -157,6 +162,11 @@ class _TimeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 38),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       onPressed: () async {
         final parts = label.split(':');
         final picked = await showTimePicker(
