@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/providers.dart';
+import '../../l10n/l10n.dart';
 import '../../shared/widgets/page_shell.dart';
 import 'auth_controller.dart';
 
@@ -56,6 +57,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final configured = ref.watch(backendConfiguredProvider);
     final auth = ref.read(authControllerProvider);
+    final t = ref.watch(tProvider);
 
     return PageShell(
       child: Center(
@@ -65,11 +67,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 20),
-              Text(_barberMode ? 'Вход для барбера' : 'Вход',
+              Text(_barberMode ? t.barberLogin : t.login,
                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
               Text(
-                _barberMode ? 'По email и паролю.' : 'Войдите через Google-аккаунт.',
+                _barberMode ? t.barberLoginSubtitle : t.loginGoogleSubtitle,
                 style: const TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 24),
@@ -78,7 +80,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   'Демо-режим: Supabase не подключён. Задайте SUPABASE_URL и '
                   'SUPABASE_ANON_KEY через env.json.',
                 ),
-              if (_barberMode) ..._barberFields() else _googleButton(auth),
+              if (_barberMode) ..._barberFields(t) else _googleButton(auth, t),
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(_error!, style: const TextStyle(color: Colors.redAccent)),
@@ -100,7 +102,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                      : const Text('Войти'),
+                      : Text(t.signIn),
                 ),
               ],
               const SizedBox(height: 12),
@@ -111,7 +113,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           _barberMode = !_barberMode;
                           _error = null;
                         }),
-                child: Text(_barberMode ? 'Я клиент — вход через Google' : 'Вход для барбера'),
+                child: Text(_barberMode ? t.iAmClient : t.barberLogin),
               ),
             ],
           ),
@@ -120,7 +122,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _googleButton(AuthController auth) {
+  Widget _googleButton(AuthController auth, T t) {
     final configured = ref.read(backendConfiguredProvider);
     return OutlinedButton.icon(
       onPressed: _busy || !configured ? null : () => _run(auth.signInWithGoogle),
@@ -131,21 +133,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       icon: _busy
           ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
           : const Text('G', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-      label: const Text('Войти через Google'),
+      label: Text(t.signInGoogle),
     );
   }
 
-  List<Widget> _barberFields() => [
+  List<Widget> _barberFields(T t) => [
         TextField(
           controller: _emailCtrl,
           keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: t.email, border: const OutlineInputBorder()),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _passwordCtrl,
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Пароль', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: t.password, border: const OutlineInputBorder()),
         ),
       ];
 }

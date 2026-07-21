@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
 import '../../data/providers.dart';
+import '../../l10n/l10n.dart';
 import '../../models/booking.dart';
 import '../../models/booking_status.dart';
 import '../auth/auth_controller.dart';
@@ -22,6 +23,7 @@ class AccountPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(tProvider);
     final bookings = ref.watch(myBookingsProvider);
     final user = ref.watch(currentUserProvider).value;
 
@@ -32,15 +34,14 @@ class AccountPage extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Мои записи',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+              Text(t.myBookings, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
               TextButton.icon(
                 onPressed: () async {
                   await ref.read(authControllerProvider).signOut();
                   if (context.mounted) context.go('/');
                 },
                 icon: const Icon(Icons.logout_rounded),
-                label: const Text('Выйти'),
+                label: Text(t.signOut),
               ),
             ],
           ),
@@ -48,10 +49,10 @@ class AccountPage extends ConsumerWidget {
             Text(user.name ?? user.phone, style: const TextStyle(color: Colors.white60)),
           const SizedBox(height: 20),
           bookings.when(
-            loading: () => const Center(child: Padding(
-              padding: EdgeInsets.all(40), child: CircularProgressIndicator())),
-            error: (e, _) => Text('Ошибка: $e'),
-            data: (list) => _content(context, ref, list),
+            loading: () => const Center(
+                child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator())),
+            error: (e, _) => Text(t.error(e)),
+            data: (list) => _content(context, ref, t, list),
           ),
           const SizedBox(height: 40),
         ],
@@ -59,7 +60,7 @@ class AccountPage extends ConsumerWidget {
     );
   }
 
-  Widget _content(BuildContext context, WidgetRef ref, List<Booking> list) {
+  Widget _content(BuildContext context, WidgetRef ref, T t, List<Booking> list) {
     final now = DateTime.now();
     final upcoming = list
         .where((b) =>
@@ -73,12 +74,12 @@ class AccountPage extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('У вас пока нет записей.', style: TextStyle(color: Colors.white70)),
+          Text(t.noBookings, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => context.go('/book'),
             icon: const Icon(Icons.add),
-            label: const Text('Записаться'),
+            label: Text(t.bookAction),
           ),
         ],
       );
@@ -88,24 +89,26 @@ class AccountPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (upcoming.isNotEmpty) ...[
-          const _Header('Предстоящие'),
+          _Header(t.upcoming),
           ...upcoming.map((b) => _BookingCard(
                 booking: b,
+                statusLabel: t.status(b.status),
                 trailing: TextButton(
                   style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-                  onPressed: () => _cancel(context, ref, b),
-                  child: const Text('Отменить'),
+                  onPressed: () => _cancel(context, ref, t, b),
+                  child: Text(t.cancel),
                 ),
               )),
           const SizedBox(height: 24),
         ],
         if (history.isNotEmpty) ...[
-          const _Header('История'),
+          _Header(t.history),
           ...history.map((b) => _BookingCard(
                 booking: b,
+                statusLabel: t.status(b.status),
                 trailing: TextButton(
                   onPressed: () => context.go('/book?service=${b.serviceId}'),
-                  child: const Text('Повторить'),
+                  child: Text(t.repeat),
                 ),
               )),
         ],
@@ -113,20 +116,20 @@ class AccountPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _cancel(BuildContext context, WidgetRef ref, Booking b) async {
+  Future<void> _cancel(BuildContext context, WidgetRef ref, T t, Booking b) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Отменить запись?'),
+        title: Text(t.cancelQuestion),
         content: Text(
             '${DateFormat('d MMMM, EEEE', 'ru').format(b.bookingDate)} — ${b.startTime}\n${b.serviceName ?? ''}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Нет')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.no)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Отменить запись'),
+            child: Text(t.cancelYes),
           ),
         ],
       ),
@@ -137,7 +140,8 @@ class AccountPage extends ConsumerWidget {
       ref.invalidate(myBookingsProvider);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Не удалось отменить: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${t.cancelFailed}: $e')));
       }
     }
   }
@@ -149,13 +153,16 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: Text(text, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.gold)),
+        child: Text(text,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.gold)),
       );
 }
 
 class _BookingCard extends StatelessWidget {
-  const _BookingCard({required this.booking, required this.trailing});
+  const _BookingCard(
+      {required this.booking, required this.statusLabel, required this.trailing});
   final Booking booking;
+  final String statusLabel;
   final Widget trailing;
 
   @override
@@ -179,7 +186,7 @@ class _BookingCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 4),
-                Text('${booking.serviceName ?? ''} — ${booking.status.label}',
+                Text('${booking.serviceName ?? ''} — $statusLabel',
                     style: const TextStyle(color: Colors.white60, fontSize: 13)),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/providers.dart';
+import '../../l10n/l10n.dart';
 import '../../models/service.dart';
 import '../../shared/widgets/page_shell.dart';
 import 'booking_wizard.dart';
@@ -15,6 +16,7 @@ class BookingPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(tProvider);
     final List<Service> services = ref.watch(servicesProvider).value ?? const [];
     Service? initial;
     if (serviceId != null) {
@@ -30,11 +32,9 @@ class BookingPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Онлайн-запись',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+          Text(t.bookingTitle, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
-          const Text('Выберите услугу, дату и удобное время.',
-              style: TextStyle(color: Colors.white70)),
+          Text(t.bookingSubtitle, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 24),
           BookingWizard(initialService: initial),
           const SizedBox(height: 40),

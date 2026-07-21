@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../app/theme.dart';
 import '../../core/constants.dart';
 import '../../data/providers.dart';
+import '../../l10n/l10n.dart';
 import '../../models/service.dart';
 import '../booking/booking_wizard.dart';
 import '../../shared/widgets/page_shell.dart';
@@ -17,22 +18,23 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 760;
     final services = ref.watch(servicesProvider);
+    final t = ref.watch(tProvider);
 
     return PageShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _hero(context, isMobile),
+          _hero(context, t, isMobile),
           const SizedBox(height: 40),
-          const _SectionTitle('Услуги'),
+          _SectionTitle(t.servicesTitle),
           const SizedBox(height: 16),
           services.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('Ошибка загрузки услуг: $e'),
-            data: (list) => _servicesGrid(list, isMobile),
+            error: (e, _) => Text(t.error(e)),
+            data: (list) => _servicesGrid(list, t, isMobile),
           ),
           const SizedBox(height: 40),
-          const _SectionTitle('Онлайн-запись'),
+          _SectionTitle(t.onlineBooking),
           const SizedBox(height: 16),
           const BookingWizard(),
           const SizedBox(height: 48),
@@ -41,7 +43,7 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _hero(BuildContext context, bool isMobile) {
+  Widget _hero(BuildContext context, T t, bool isMobile) {
     final hero = Container(
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 24 : 40),
@@ -60,13 +62,9 @@ class HomePage extends ConsumerWidget {
           Text(BusinessInfo.name,
               style: TextStyle(fontSize: isMobile ? 30 : 40, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
-          const Text('Современный барбершоп в Нокате',
-              style: TextStyle(fontSize: 18, color: AppColors.gold)),
+          Text(t.heroSubtitle, style: const TextStyle(fontSize: 18, color: AppColors.gold)),
           const SizedBox(height: 12),
-          const Text(
-            'Профессиональная стрижка, аккуратная борода и удобная онлайн-запись без переписки.',
-            style: TextStyle(height: 1.6, color: Colors.white70),
-          ),
+          Text(t.heroText, style: const TextStyle(height: 1.6, color: Colors.white70)),
           const SizedBox(height: 20),
           Wrap(
             spacing: 10,
@@ -80,7 +78,7 @@ class HomePage extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/book'),
             icon: const Icon(Icons.arrow_forward_rounded),
-            label: const Text('Записаться онлайн'),
+            label: Text(t.bookOnline),
           ),
         ],
       ),
@@ -88,7 +86,7 @@ class HomePage extends ConsumerWidget {
     return hero;
   }
 
-  Widget _servicesGrid(List<Service> list, bool isMobile) {
+  Widget _servicesGrid(List<Service> list, T t, bool isMobile) {
     return Wrap(
       spacing: 16,
       runSpacing: 16,
@@ -109,7 +107,7 @@ class HomePage extends ConsumerWidget {
               Text(s.priceLabel,
                   style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
-              Text('Длительность: ${s.durationMin} мин',
+              Text(t.durationLabel(s.durationMin),
                   style: const TextStyle(color: Colors.white60)),
             ],
           ),

@@ -13,6 +13,7 @@ class AppUser {
     required this.phone,
     required this.role,
     this.name,
+    this.contactPhone,
     this.createdAt,
   });
 
@@ -20,6 +21,9 @@ class AppUser {
   final String phone;
   final UserRole role;
   final String? name;
+
+  /// Real contact phone the client entered when booking (Google gives none).
+  final String? contactPhone;
   final DateTime? createdAt;
 
   bool get isAdmin => role == UserRole.admin;
@@ -30,6 +34,7 @@ class AppUser {
       phone: map['phone'] as String,
       role: UserRole.fromDb(map['role'] as String),
       name: map['name'] as String?,
+      contactPhone: map['contact_phone'] as String?,
       createdAt: map['created_at'] == null
           ? null
           : DateTime.parse(map['created_at'] as String),

@@ -3,13 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
+import '../../core/supabase_client.dart';
 import '../../data/booking_repository.dart';
 import '../../data/providers.dart';
+import '../../l10n/l10n.dart';
 import '../../models/service.dart';
+import '../auth/auth_controller.dart';
 
-/// Five-step booking wizard: service → date → time → details → confirmation.
-/// Data-driven: services and free slots come from the repositories; on submit
-/// it calls the server (which enforces the no-double-booking rule).
+/// Five-step booking wizard, gated behind Google sign-in: service → date →
+/// time → details → confirmation. Name/phone are prefilled from the account.
 class BookingWizard extends ConsumerStatefulWidget {
   const BookingWizard({super.key, this.initialService});
 
@@ -25,13 +27,12 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
   DateTime? _date;
   DateTime? _slot;
   bool _submitting = false;
+  bool _prefilled = false;
   BookingOutcome? _outcome;
 
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _commentCtrl = TextEditingController();
-
-  static final _steps = ['Услуга', 'Дата', 'Время', 'Данные', 'Готово'];
 
   @override
   void initState() {
@@ -68,15 +69,32 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
       _outcome = outcome;
       _step = 4;
     });
-    // On a taken slot, invalidate the cached slots so the UI refreshes on retry.
-    if (outcome == BookingOutcome.slotTaken && _date != null) {
+    if (outcome == BookingOutcome.success) {
+      ref.invalidate(myBookingsProvider);
+    }
+    if (outcome == BookingOutcome.slotTaken) {
       ref.invalidate(availableSlotsProvider);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = ref.watch(tProvider);
+    final user = ref.watch(currentUserProvider).value;
     final isMobile = MediaQuery.of(context).size.width < 760;
+
+    // Booking requires a signed-in client.
+    if (user == null) {
+      return _loginGate(t);
+    }
+
+    // Prefill name (Google) + phone (remembered) once.
+    if (!_prefilled) {
+      _prefilled = true;
+      _nameCtrl.text = authDisplayName ?? user.name ?? '';
+      _phoneCtrl.text = user.contactPhone ?? '';
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -87,38 +105,65 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _indicator(isMobile),
+          _indicator(t, isMobile),
           const SizedBox(height: 20),
           switch (_step) {
-            0 => _serviceStep(isMobile),
-            1 => _dateStep(isMobile),
-            2 => _timeStep(isMobile),
-            3 => _detailsStep(isMobile),
-            _ => _confirmationStep(),
+            0 => _serviceStep(t, isMobile),
+            1 => _dateStep(t, isMobile),
+            2 => _timeStep(t, isMobile),
+            3 => _detailsStep(t, isMobile),
+            _ => _confirmationStep(t),
           },
         ],
       ),
     );
   }
 
-  Widget _indicator(bool isMobile) {
+  Widget _loginGate(T t) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.lock_outline_rounded, size: 40, color: AppColors.gold),
+          const SizedBox(height: 12),
+          Text(t.loginToBook,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => ref.read(authControllerProvider).signInWithGoogle(),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              side: const BorderSide(color: Colors.white24),
+            ),
+            icon: const Text('G', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            label: Text(t.signInGoogle),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _indicator(T t, bool isMobile) {
+    final steps = t.steps;
     final row = Row(
-      children: List.generate(_steps.length, (i) {
+      children: List.generate(steps.length, (i) {
         final active = i <= _step;
         final chip = Container(
-          margin: EdgeInsets.only(right: i == _steps.length - 1 ? 0 : 8),
+          margin: EdgeInsets.only(right: i == steps.length - 1 ? 0 : 8),
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: isMobile ? 12 : 8),
           decoration: BoxDecoration(
             color: active ? AppColors.gold : Colors.white10,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(
-            _steps[i],
-            style: TextStyle(
-              color: active ? Colors.black : Colors.white70,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: Text(steps[i],
+              style: TextStyle(
+                  color: active ? Colors.black : Colors.white70, fontWeight: FontWeight.w600)),
         );
         return isMobile ? chip : Expanded(child: Center(child: chip));
       }),
@@ -128,20 +173,16 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
         : row;
   }
 
-  // Step 0 — service.
-  Widget _serviceStep(bool isMobile) {
+  Widget _serviceStep(T t, bool isMobile) {
     final services = ref.watch(servicesProvider);
     return services.when(
       loading: () => const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Text('Не удалось загрузить услуги: $e'),
+          padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Text(t.error(e)),
       data: (list) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Выберите услугу',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          Text(t.chooseService, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
@@ -166,7 +207,8 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
                       Text(s.priceLabel,
                           style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
-                      Text('${s.durationMin} мин', style: const TextStyle(color: Colors.white60)),
+                      Text('${s.durationMin} ${t.minutesShort}',
+                          style: const TextStyle(color: Colors.white60)),
                     ],
                   ),
                 ),
@@ -174,24 +216,19 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
             }).toList(),
           ),
           const SizedBox(height: 20),
-          FilledButton(
-            onPressed: _service == null ? null : () => _go(1),
-            child: const Text('Далее'),
-          ),
+          FilledButton(onPressed: _service == null ? null : () => _go(1), child: Text(t.next)),
         ],
       ),
     );
   }
 
-  // Step 1 — date (next 14 days, working days only).
-  Widget _dateStep(bool isMobile) {
+  Widget _dateStep(T t, bool isMobile) {
     final today = DateTime.now();
     final days = List.generate(14, (i) => DateTime(today.year, today.month, today.day + i));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Выберите дату',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        Text(t.chooseDate, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         Wrap(
           spacing: 10,
@@ -212,127 +249,107 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
           }).toList(),
         ),
         const SizedBox(height: 20),
-        _nav(isMobile, onBack: () => _go(0), onNext: _date == null ? null : () => _go(2)),
+        _nav(t, isMobile, onBack: () => _go(0), onNext: _date == null ? null : () => _go(2)),
       ],
     );
   }
 
-  // Step 2 — time (computed slots).
-  Widget _timeStep(bool isMobile) {
-    final query = (
-      serviceId: _service!.id,
-      durationMin: _service!.durationMin,
-      date: _date!,
-    );
+  Widget _timeStep(T t, bool isMobile) {
+    final query = (serviceId: _service!.id, durationMin: _service!.durationMin, date: _date!);
     final slots = ref.watch(availableSlotsProvider(query));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Свободное время • ${DateFormat('d MMMM', 'ru').format(_date!)}',
+        Text('${t.freeTime} • ${DateFormat('d MMMM', 'ru').format(_date!)}',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         slots.when(
           loading: () => const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (e, _) => Text('Не удалось загрузить слоты: $e'),
+              padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Text(t.error(e)),
           data: (list) => list.isEmpty
-              ? const Text('На эту дату свободных слотов нет. Выберите другой день.',
-                  style: TextStyle(color: Colors.white70))
+              ? Text(t.noSlots, style: const TextStyle(color: Colors.white70))
               : Wrap(
                   spacing: 10,
                   runSpacing: 10,
-                  children: list.map((t) {
-                    final selected = _slot != null &&
-                        _slot!.hour == t.hour &&
-                        _slot!.minute == t.minute;
+                  children: list.map((tm) {
+                    final selected =
+                        _slot != null && _slot!.hour == tm.hour && _slot!.minute == tm.minute;
                     return ChoiceChip(
-                      label: Text(DateFormat.Hm().format(t)),
+                      label: Text(DateFormat.Hm().format(tm)),
                       selected: selected,
-                      onSelected: (_) => setState(() => _slot = t),
+                      onSelected: (_) => setState(() => _slot = tm),
                     );
                   }).toList(),
                 ),
         ),
         const SizedBox(height: 20),
-        _nav(isMobile, onBack: () => _go(1), onNext: _slot == null ? null : () => _go(3)),
+        _nav(t, isMobile, onBack: () => _go(1), onNext: _slot == null ? null : () => _go(3)),
       ],
     );
   }
 
-  // Step 3 — customer details.
-  Widget _detailsStep(bool isMobile) {
+  Widget _detailsStep(T t, bool isMobile) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Ваши данные',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+        Text(t.yourData, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         TextField(
           controller: _nameCtrl,
-          decoration: const InputDecoration(labelText: 'Имя', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: t.name, border: const OutlineInputBorder()),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _phoneCtrl,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-              labelText: 'Телефон', hintText: '+996 555 12 34 56', border: OutlineInputBorder()),
+          decoration: InputDecoration(
+              labelText: t.phone, hintText: '+996 555 12 34 56', border: const OutlineInputBorder()),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _commentCtrl,
           maxLines: 3,
-          decoration: const InputDecoration(
-              labelText: 'Комментарий (необязательно)', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: t.comment, border: const OutlineInputBorder()),
         ),
         const SizedBox(height: 20),
-        _nav(
-          isMobile,
-          onBack: () => _go(2),
-          nextLabel: 'Подтвердить',
-          onNext: _submitting ? null : _submit,
-          loading: _submitting,
-        ),
+        _nav(t, isMobile,
+            onBack: () => _go(2),
+            nextLabel: t.confirm,
+            onNext: _submitting ? null : _submit,
+            loading: _submitting),
       ],
     );
   }
 
-  // Step 4 — result.
-  Widget _confirmationStep() {
+  Widget _confirmationStep(T t) {
     final ok = _outcome == BookingOutcome.success;
     final (icon, color, title, subtitle) = switch (_outcome) {
       BookingOutcome.success => (
           Icons.check_circle_outline_rounded,
           AppColors.gold,
-          'Вы записаны!',
+          t.booked,
           '${DateFormat('d MMMM, EEEE', 'ru').format(_date!)} — ${DateFormat.Hm().format(_slot!)}',
         ),
       BookingOutcome.slotTaken => (
           Icons.error_outline_rounded,
           Colors.orangeAccent,
-          'Это время уже заняли',
-          'Пожалуйста, вернитесь и выберите другой слот.',
+          t.slotTakenTitle,
+          t.slotTakenText,
         ),
       BookingOutcome.blacklisted => (
           Icons.block_rounded,
           Colors.redAccent,
-          'Запись недоступна',
-          'Свяжитесь с барбершопом напрямую.',
+          t.blockedTitle,
+          t.blockedText,
         ),
       BookingOutcome.notConfigured => (
           Icons.info_outline_rounded,
           Colors.white70,
-          'Демо-режим',
-          'Backend не подключён — запись не сохранена. Настройте Supabase для реальных броней.',
+          'Demo',
+          '',
         ),
-      _ => (
-          Icons.error_outline_rounded,
-          Colors.redAccent,
-          'Что-то пошло не так',
-          'Попробуйте ещё раз позже.',
-        ),
+      _ => (Icons.error_outline_rounded, Colors.redAccent, t.errorTitle, t.errorText),
     };
     return Column(
       children: [
@@ -349,7 +366,7 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
         if (!ok)
           FilledButton(
             onPressed: () => _go(_outcome == BookingOutcome.slotTaken ? 2 : 0),
-            child: const Text('Назад к выбору'),
+            child: Text(t.backToChoice),
           )
         else
           OutlinedButton(
@@ -359,33 +376,28 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
               _date = null;
               _slot = null;
               _outcome = null;
-              _nameCtrl.clear();
-              _phoneCtrl.clear();
               _commentCtrl.clear();
             }),
-            child: const Text('Новая запись'),
+            child: Text(t.newBooking),
           ),
       ],
     );
   }
 
-  Widget _nav(bool isMobile,
-      {VoidCallback? onBack,
-      VoidCallback? onNext,
-      String nextLabel = 'Далее',
-      bool loading = false}) {
+  Widget _nav(T t, bool isMobile,
+      {VoidCallback? onBack, VoidCallback? onNext, String? nextLabel, bool loading = false}) {
     final next = FilledButton(
       onPressed: onNext,
       child: loading
           ? const SizedBox(
               width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-          : Text(nextLabel),
+          : Text(nextLabel ?? t.next),
     );
     return Flex(
       direction: isMobile ? Axis.vertical : Axis.horizontal,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        OutlinedButton(onPressed: onBack, child: const Text('Назад')),
+        OutlinedButton(onPressed: onBack, child: Text(t.back)),
         SizedBox(width: isMobile ? 0 : 12, height: isMobile ? 12 : 0),
         next,
       ],

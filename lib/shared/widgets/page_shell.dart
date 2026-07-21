@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme.dart';
 import '../../core/constants.dart';
+import '../../l10n/l10n.dart';
 
-/// Public-facing scaffold: top navigation + centered, max-width content column.
+/// Public-facing scaffold: top navigation (with language toggle) + centered,
+/// max-width content column.
 class PageShell extends StatelessWidget {
   const PageShell({super.key, required this.child});
 
@@ -36,47 +39,72 @@ class PageShell extends StatelessWidget {
   }
 }
 
-class _TopNav extends StatelessWidget {
+class _TopNav extends ConsumerWidget {
   const _TopNav({required this.isMobile});
   final bool isMobile;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = ref.watch(tProvider);
     final logo = GestureDetector(
       onTap: () => context.go('/'),
       child: const Text(BusinessInfo.name,
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.gold)),
     );
     final links = [
-      _NavLink('Услуги', '/services'),
-      _NavLink('Запись', '/book'),
-      _NavLink('Кабинет', '/account'),
+      (label: t.navServices, path: '/services'),
+      (label: t.navBook, path: '/book'),
+      (label: t.navCabinet, path: '/account'),
     ];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         logo,
-        if (isMobile)
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu_rounded),
-            onSelected: (path) => context.go(path),
-            itemBuilder: (_) =>
-                links.map((l) => PopupMenuItem(value: l.path, child: Text(l.label))).toList(),
-          )
-        else
-          Row(children: links),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isMobile)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.menu_rounded),
+                onSelected: (path) => context.go(path),
+                itemBuilder: (_) => links
+                    .map((l) => PopupMenuItem(value: l.path, child: Text(l.label)))
+                    .toList(),
+              )
+            else
+              Row(
+                children: links
+                    .map((l) => TextButton(
+                          onPressed: () => context.go(l.path),
+                          child: Text(l.label, style: const TextStyle(color: Colors.white70)),
+                        ))
+                    .toList(),
+              ),
+            const SizedBox(width: 4),
+            const _LanguageToggle(),
+          ],
+        ),
       ],
     );
   }
 }
 
-class _NavLink extends StatelessWidget {
-  const _NavLink(this.label, this.path);
-  final String label;
-  final String path;
+class _LanguageToggle extends ConsumerWidget {
+  const _LanguageToggle();
+
   @override
-  Widget build(BuildContext context) => TextButton(
-        onPressed: () => context.go(path),
-        child: Text(label, style: const TextStyle(color: Colors.white70)),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeControllerProvider);
+    return TextButton(
+      onPressed: () => ref.read(localeControllerProvider.notifier).toggle(),
+      style: TextButton.styleFrom(
+        minimumSize: const Size(44, 40),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+      ),
+      child: Text(
+        locale == AppLocale.ru ? 'КЫРГ' : 'РУС',
+        style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700, fontSize: 13),
+      ),
+    );
+  }
 }

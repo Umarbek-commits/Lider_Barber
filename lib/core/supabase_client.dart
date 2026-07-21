@@ -27,3 +27,9 @@ User? get maybeCurrentUser {
     return null;
   }
 }
+
+/// Display name from the OAuth provider (Google full name), if any.
+String? get authDisplayName {
+  final md = maybeCurrentUser?.userMetadata;
+  return (md?['full_name'] ?? md?['name']) as String?;
+}
