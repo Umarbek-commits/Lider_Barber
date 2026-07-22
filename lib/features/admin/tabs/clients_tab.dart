@@ -42,30 +42,48 @@ class _ClientsTabState extends ConsumerState<ClientsTab> {
           ),
         ),
         Expanded(
-          child: clients.when(
-            loading: () => const Padding(
-                padding: EdgeInsets.all(20), child: SkeletonList(count: 6, cardHeight: 64)),
-            error: (e, _) => Center(child: Text('Ошибка: $e')),
-            data: (list) {
-              final filtered = _query.isEmpty
-                  ? list
-                  : list
-                      .where((c) =>
-                          c.name.toLowerCase().contains(_query) || c.phone.contains(_query))
-                      .toList();
-              if (filtered.isEmpty) {
-                return const Center(child: Text('Ничего не найдено', style: TextStyle(color: Colors.white60)));
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.all(20),
-                itemCount: filtered.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (_, i) => _ClientRow(
-                  client: filtered[i],
-                  onTap: () => _openCard(filtered[i]),
-                ),
-              );
+          child: RefreshIndicator(
+            color: AppColors.gold,
+            backgroundColor: AppColors.surface,
+            onRefresh: () async {
+              ref.invalidate(adminClientsProvider);
+              await ref.read(adminClientsProvider.future);
             },
+            child: clients.when(
+              loading: () => ListView(children: const [
+                Padding(
+                    padding: EdgeInsets.all(20), child: SkeletonList(count: 6, cardHeight: 64)),
+              ]),
+              error: (e, _) => ListView(children: [Center(child: Text('Ошибка: $e'))]),
+              data: (list) {
+                final filtered = _query.isEmpty
+                    ? list
+                    : list
+                        .where((c) =>
+                            c.name.toLowerCase().contains(_query) || c.phone.contains(_query))
+                        .toList();
+                if (filtered.isEmpty) {
+                  return ListView(children: const [
+                    Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(
+                          child: Text('Ничего не найдено',
+                              style: TextStyle(color: Colors.white60))),
+                    ),
+                  ]);
+                }
+                return ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (_, i) => _ClientRow(
+                    client: filtered[i],
+                    onTap: () => _openCard(filtered[i]),
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ],

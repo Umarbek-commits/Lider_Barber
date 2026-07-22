@@ -30,6 +30,10 @@ class AccountPage extends ConsumerWidget {
     final user = ref.watch(currentUserProvider).value;
 
     return PageShell(
+      onRefresh: () async {
+        ref.invalidate(myBookingsProvider);
+        await ref.read(myBookingsProvider.future);
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

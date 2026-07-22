@@ -9,9 +9,12 @@ import '../../l10n/l10n.dart';
 /// Public-facing scaffold: minimal top bar (logo + language toggle) and a
 /// bottom navigation bar (Home / Services / Booking / Cabinet).
 class PageShell extends ConsumerWidget {
-  const PageShell({super.key, required this.child});
+  const PageShell({super.key, required this.child, this.onRefresh});
 
   final Widget child;
+
+  /// When provided, the page supports pull-to-refresh (swipe down).
+  final Future<void> Function()? onRefresh;
 
   static const _tabs = ['/', '/services', '/book', '/account'];
 
@@ -29,28 +32,36 @@ class PageShell extends ConsumerWidget {
     final path = GoRouterState.of(context).uri.path;
     final index = _selectedIndex(path);
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1100),
-              child: Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _TopBar(),
-                    const SizedBox(height: 20),
-                    child,
-                  ],
-                ),
-              ),
+    Widget scroller = SingleChildScrollView(
+      physics: onRefresh != null ? const AlwaysScrollableScrollPhysics() : null,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 24, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _TopBar(),
+                const SizedBox(height: 20),
+                child,
+              ],
             ),
           ),
         ),
       ),
+    );
+    if (onRefresh != null) {
+      scroller = RefreshIndicator(
+        onRefresh: onRefresh!,
+        color: AppColors.gold,
+        backgroundColor: AppColors.surface,
+        child: scroller,
+      );
+    }
+
+    return Scaffold(
+      body: SafeArea(child: scroller),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: (i) => context.go(_tabs[i]),

@@ -20,6 +20,10 @@ class HomePage extends ConsumerWidget {
     final news = ref.watch(newsProvider).value ?? const [];
 
     return PageShell(
+      onRefresh: () async {
+        ref.invalidate(newsProvider);
+        await ref.read(newsProvider.future);
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
