@@ -27,8 +27,10 @@ final adminClientsProvider = FutureProvider<List<Client>>((ref) {
   return ref.watch(adminRepositoryProvider).clients();
 });
 
+// autoDispose so the client card re-fetches fresh history (ratings, statuses)
+// every time it's opened instead of showing a stale cached value.
 final clientBookingsProvider =
-    FutureProvider.family<List<Booking>, String>((ref, clientId) {
+    FutureProvider.autoDispose.family<List<Booking>, String>((ref, clientId) {
   return ref.watch(adminRepositoryProvider).clientBookings(clientId);
 });
 

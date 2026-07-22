@@ -91,6 +91,9 @@ class _ClientsTabState extends ConsumerState<ClientsTab> {
   }
 
   Future<void> _openCard(Client c) async {
+    // Always show fresh history (new ratings/statuses), not a cached copy.
+    ref.invalidate(clientBookingsProvider(c.id));
+    ref.invalidate(staffNamesProvider);
     await showDialog(context: context, builder: (_) => _ClientCard(client: c));
     ref.invalidate(adminClientsProvider);
   }
