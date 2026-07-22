@@ -175,6 +175,23 @@ class _BookingRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text('${booking.serviceName ?? ''} • ${booking.clientPhone ?? ''}',
                     style: const TextStyle(color: Colors.white60, fontSize: 13)),
+                if ((booking.comment ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.chat_bubble_outline, size: 13, color: Colors.white38),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text('«${booking.comment!.trim()}»',
+                            style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic)),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 6),
                 _StatusChip(status: booking.status),
               ],
