@@ -1,3 +1,6 @@
+import 'package:supabase_flutter/supabase_flutter.dart' show SupabaseClient;
+
+import '../core/env.dart';
 import '../core/supabase_client.dart';
 import '../models/app_user.dart';
 import '../models/booking.dart';
@@ -63,19 +66,27 @@ class AdminRepository {
     return rows.map((r) => AppUser.fromMap(r)).toList();
   }
 
-  /// Promote an existing account (created in the Supabase dashboard with
-  /// "Auto Confirm User") to a barber. Returns false if no user with that email
-  /// exists yet. This avoids any dependency on the "Confirm email" setting.
-  Future<bool> addBarberByEmail({required String name, required String email}) async {
-    await supabase.rpc('set_barber', params: {'p_email': email.trim(), 'p_name': name.trim()});
-    // Verify the promotion took effect (email must already be registered).
-    final row = await supabase
-        .from('users')
-        .select('id')
-        .eq('phone', email.trim())
-        .eq('role', 'barber')
-        .maybeSingle();
-    return row != null;
+  /// Create a barber account (admin only). A throwaway client performs the
+  /// signup so the admin's own session is not replaced; then the account is
+  /// promoted to 'barber'. Works because "Confirm email" is disabled, so the
+  /// new account can sign in immediately.
+  Future<void> createBarber({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final temp = SupabaseClient(Env.supabaseUrl, Env.supabaseAnonKey);
+    try {
+      await temp.auth.signUp(
+        email: email.trim(),
+        password: password,
+        data: {'full_name': name.trim()},
+      );
+    } finally {
+      await temp.dispose();
+    }
+    await supabase
+        .rpc('set_barber', params: {'p_email': email.trim(), 'p_name': name.trim()});
   }
 
   Future<void> removeBarber(String userId) async {

@@ -117,6 +117,7 @@ class _AddBarberDialog extends ConsumerStatefulWidget {
 class _AddBarberDialogState extends ConsumerState<_AddBarberDialog> {
   final _name = TextEditingController();
   final _email = TextEditingController();
+  final _password = TextEditingController();
   bool _busy = false;
   String? _error;
 
@@ -124,6 +125,7 @@ class _AddBarberDialogState extends ConsumerState<_AddBarberDialog> {
   void dispose() {
     _name.dispose();
     _email.dispose();
+    _password.dispose();
     super.dispose();
   }
 
@@ -131,33 +133,27 @@ class _AddBarberDialogState extends ConsumerState<_AddBarberDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.surface,
-      title: const Text('Добавить мастера'),
+      title: const Text('Новый мастер'),
       content: SizedBox(
         width: 400,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white10,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Text(
-                'Сначала создайте аккаунт мастера в Supabase → Authentication → '
-                'Users → Add user (email + пароль, галочка Auto Confirm). Потом '
-                'введите этот email здесь.',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ),
+            const Text('Мастер войдёт в панель по этим email и паролю.',
+                style: TextStyle(color: Colors.white60, fontSize: 13)),
             const SizedBox(height: 14),
             TextField(controller: _name, decoration: const InputDecoration(labelText: 'Имя мастера')),
             const SizedBox(height: 10),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email (как в Supabase)'),
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _password,
+              decoration: const InputDecoration(labelText: 'Пароль (мин. 6 символов)'),
             ),
             if (_error != null) ...[
               const SizedBox(height: 10),
@@ -173,15 +169,17 @@ class _AddBarberDialogState extends ConsumerState<_AddBarberDialog> {
           child: _busy
               ? const SizedBox(
                   width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-              : const Text('Добавить'),
+              : const Text('Создать'),
         ),
       ],
     );
   }
 
   Future<void> _save() async {
-    if (_name.text.trim().isEmpty || _email.text.trim().isEmpty) {
-      setState(() => _error = 'Введите имя и email');
+    if (_name.text.trim().isEmpty ||
+        _email.text.trim().isEmpty ||
+        _password.text.length < 6) {
+      setState(() => _error = 'Заполните имя, email и пароль (мин. 6 символов)');
       return;
     }
     setState(() {
@@ -189,21 +187,18 @@ class _AddBarberDialogState extends ConsumerState<_AddBarberDialog> {
       _error = null;
     });
     try {
-      final ok = await ref
-          .read(adminRepositoryProvider)
-          .addBarberByEmail(name: _name.text, email: _email.text);
-      if (!ok) {
-        setState(() {
-          _busy = false;
-          _error = 'Аккаунт с таким email не найден. Сначала создайте его в Supabase → Users.';
-        });
-        return;
-      }
+      await ref.read(adminRepositoryProvider).createBarber(
+            name: _name.text,
+            email: _email.text,
+            password: _password.text,
+          );
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       setState(() {
         _busy = false;
-        _error = 'Ошибка: $e';
+        _error = e.toString().toLowerCase().contains('registered')
+            ? 'Такой email уже зарегистрирован'
+            : 'Ошибка: $e';
       });
     }
   }
