@@ -351,9 +351,15 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
         ),
       _ => (Icons.error_outline_rounded, Colors.redAccent, t.errorTitle, t.errorText),
     };
-    return Column(
-      children: [
-        Icon(icon, size: 56, color: color),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 56, color: color),
         const SizedBox(height: 12),
         Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
@@ -380,7 +386,8 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
             }),
             child: Text(t.newBooking),
           ),
-      ],
+        ],
+      ),
     );
   }
 

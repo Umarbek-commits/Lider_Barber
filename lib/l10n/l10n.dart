@@ -121,6 +121,7 @@ class T {
 
   // Account / cabinet
   String get myBookings => _('Мои записи', 'Менин жазылууларым');
+  String get refresh => _('Обновить', 'Жаңыртуу');
   String get signOut => _('Выйти', 'Чыгуу');
   String get noBookings =>
       _('У вас пока нет записей.', 'Сизде азырынча жазылуу жок.');

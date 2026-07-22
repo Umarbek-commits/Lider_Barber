@@ -25,11 +25,14 @@ class AdminRepository {
 
   // --- Schedule (day view) ---------------------------------------------------
 
+  /// Active bookings for a day (pending/confirmed). Completed and cancelled
+  /// bookings leave the schedule and live on in the client's history.
   Future<List<Booking>> bookingsForDate(DateTime day) async {
     final rows = await supabase
         .from('bookings')
         .select('*, clients(name,phone), services(name,price_som)')
         .eq('booking_date', date(day))
+        .inFilter('status', ['pending', 'confirmed'])
         .order('start_time');
     return rows.map((r) => Booking.fromMap(r)).toList();
   }

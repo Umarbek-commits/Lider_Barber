@@ -35,7 +35,15 @@ class AccountPage extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(t.myBookings, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+              Expanded(
+                child: Text(t.myBookings,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+              ),
+              IconButton(
+                onPressed: () => ref.invalidate(myBookingsProvider),
+                icon: const Icon(Icons.refresh_rounded),
+                tooltip: t.refresh,
+              ),
               TextButton.icon(
                 onPressed: () async {
                   await ref.read(authControllerProvider).signOut();
