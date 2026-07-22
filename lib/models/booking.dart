@@ -16,6 +16,9 @@ class Booking {
     this.clientPhone,
     this.serviceName,
     this.servicePriceSom,
+    this.acceptedBy,
+    this.acceptedByName,
+    this.acceptedAt,
   });
 
   final String id;
@@ -39,6 +42,11 @@ class Booking {
   final String? serviceName;
   final int? servicePriceSom;
 
+  /// The barber who accepted/served this booking (id + resolved name).
+  final String? acceptedBy;
+  final String? acceptedByName;
+  final DateTime? acceptedAt;
+
   factory Booking.fromMap(Map<String, dynamic> map) {
     final client = map['clients'] as Map<String, dynamic>?;
     final service = map['services'] as Map<String, dynamic>?;
@@ -58,6 +66,11 @@ class Booking {
       clientPhone: client?['phone'] as String?,
       serviceName: service?['name'] as String?,
       servicePriceSom: (service?['price_som'] as num?)?.toInt(),
+      acceptedBy: map['accepted_by'] as String?,
+      acceptedByName: map['accepted_by_name'] as String?,
+      acceptedAt: map['accepted_at'] == null
+          ? null
+          : DateTime.parse(map['accepted_at'] as String),
     );
   }
 

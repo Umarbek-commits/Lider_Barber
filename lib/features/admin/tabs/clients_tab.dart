@@ -137,6 +137,7 @@ class _ClientCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(clientBookingsProvider(client.id));
+    final staffNames = ref.watch(staffNamesProvider).value ?? const <String, String>{};
     return AlertDialog(
       backgroundColor: AppColors.surface,
       title: Text(client.name),
@@ -176,21 +177,34 @@ class _ClientCard extends ConsumerWidget {
                 data: (list) => list.isEmpty
                     ? const Text('Записей нет', style: TextStyle(color: Colors.white60))
                     : Column(
-                        children: list
-                            .map((b) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: list.map((b) {
+                          final master =
+                              b.acceptedBy == null ? null : staffNames[b.acceptedBy];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('${DateFormat('d.MM.yy').format(b.bookingDate)} ${b.startTime}',
-                                          style: const TextStyle(color: Colors.white70)),
-                                      Text(b.serviceName ?? '',
-                                          style: const TextStyle(color: Colors.white54)),
-                                      Text(b.status.label, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                                      Text(
+                                        '${DateFormat('d.MM.yy').format(b.bookingDate)} ${b.startTime} • ${b.serviceName ?? ''}',
+                                        style: const TextStyle(color: Colors.white70),
+                                      ),
+                                      if (master != null)
+                                        Text('Мастер: $master',
+                                            style: const TextStyle(
+                                                color: AppColors.gold, fontSize: 12)),
                                     ],
                                   ),
-                                ))
-                            .toList(),
+                                ),
+                                Text(b.status.label,
+                                    style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                       ),
               ),
             ],

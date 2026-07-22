@@ -22,14 +22,6 @@ class AdminShell extends ConsumerStatefulWidget {
 class _AdminShellState extends ConsumerState<AdminShell> {
   int _index = 0;
 
-  static const _tabs = [DashboardTab(), ScheduleTab(), ClientsTab(), SettingsTab()];
-  static const _destinations = [
-    (icon: Icons.dashboard_outlined, selected: Icons.dashboard, label: 'Дашборд'),
-    (icon: Icons.calendar_month_outlined, selected: Icons.calendar_month, label: 'Расписание'),
-    (icon: Icons.people_outline, selected: Icons.people, label: 'Клиенты'),
-    (icon: Icons.settings_outlined, selected: Icons.settings, label: 'Настройки'),
-  ];
-
   Future<void> _signOut() async {
     await ref.read(authControllerProvider).signOut();
     if (mounted) context.go('/');
@@ -38,6 +30,36 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider).value;
+    final isAdmin = user?.isAdmin ?? false;
+
+    // Barbers see everything except Settings (schedule config, masters, news).
+    final tabs = <Widget>[
+      const DashboardTab(),
+      const ScheduleTab(),
+      const ClientsTab(),
+      if (isAdmin) const SettingsTab(),
+    ];
+    final destinations = <NavigationDestination>[
+      const NavigationDestination(
+          icon: Icon(Icons.dashboard_outlined),
+          selectedIcon: Icon(Icons.dashboard),
+          label: 'Дашборд'),
+      const NavigationDestination(
+          icon: Icon(Icons.calendar_month_outlined),
+          selectedIcon: Icon(Icons.calendar_month),
+          label: 'Расписание'),
+      const NavigationDestination(
+          icon: Icon(Icons.people_outline),
+          selectedIcon: Icon(Icons.people),
+          label: 'Клиенты'),
+      if (isAdmin)
+        const NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Настройки'),
+    ];
+
+    final safeIndex = _index.clamp(0, tabs.length - 1);
 
     return Scaffold(
       appBar: AppBar(
@@ -47,25 +69,18 @@ class _AdminShellState extends ConsumerState<AdminShell> {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Center(
-                  child: Text(user.phone,
+                  child: Text(user.name ?? user.phone,
                       style: const TextStyle(color: Colors.white54, fontSize: 13))),
             ),
           IconButton(
               onPressed: _signOut, icon: const Icon(Icons.logout_rounded), tooltip: 'Выйти'),
         ],
       ),
-      // Same bottom NavigationBar style as the client app (via app theme).
-      body: SafeArea(child: IndexedStack(index: _index, children: _tabs)),
+      body: SafeArea(child: IndexedStack(index: safeIndex, children: tabs)),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
+        selectedIndex: safeIndex,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: _destinations
-            .map((d) => NavigationDestination(
-                  icon: Icon(d.icon),
-                  selectedIcon: Icon(d.selected),
-                  label: d.label,
-                ))
-            .toList(),
+        destinations: destinations,
       ),
     );
   }

@@ -1,4 +1,8 @@
+import 'package:supabase_flutter/supabase_flutter.dart' show SupabaseClient;
+
+import '../core/env.dart';
 import '../core/supabase_client.dart';
+import '../models/app_user.dart';
 import '../models/booking.dart';
 import '../models/booking_status.dart';
 import '../models/client.dart';
@@ -37,10 +41,54 @@ class AdminRepository {
     return rows.map((r) => Booking.fromMap(r)).toList();
   }
 
+  /// Change a booking's status. Goes through the RPC so the acting barber is
+  /// recorded as who accepted/served the client.
   Future<void> setStatus(String bookingId, BookingStatus status) async {
+    await supabase.rpc('staff_set_status',
+        params: {'p_id': bookingId, 'p_status': status.dbValue});
+  }
+
+  // --- Masters (barbers) -----------------------------------------------------
+
+  /// All staff (admin + barbers), used to resolve "who accepted" names.
+  Future<List<AppUser>> staff() async {
+    final rows = await supabase
+        .from('users')
+        .select()
+        .inFilter('role', ['admin', 'barber']).order('name');
+    return rows.map((r) => AppUser.fromMap(r)).toList();
+  }
+
+  Future<List<AppUser>> barbers() async {
+    final rows =
+        await supabase.from('users').select().eq('role', 'barber').order('name');
+    return rows.map((r) => AppUser.fromMap(r)).toList();
+  }
+
+  /// Create a barber account (admin only). A throwaway client performs the
+  /// signup so the admin's own session is not replaced; then the account is
+  /// promoted to 'barber'. Requires "Confirm email" disabled in Supabase.
+  Future<void> createBarber({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final temp = SupabaseClient(Env.supabaseUrl, Env.supabaseAnonKey);
+    try {
+      await temp.auth.signUp(
+        email: email.trim(),
+        password: password,
+        data: {'full_name': name.trim()},
+      );
+    } finally {
+      await temp.dispose();
+    }
     await supabase
-        .from('bookings')
-        .update({'status': status.dbValue}).eq('id', bookingId);
+        .rpc('set_barber', params: {'p_email': email.trim(), 'p_name': name.trim()});
+  }
+
+  Future<void> removeBarber(String userId) async {
+    await supabase.rpc('remove_barber', params: {'p_user_id': userId});
   }
 
   /// Move a booking to a new start, preserving its duration.

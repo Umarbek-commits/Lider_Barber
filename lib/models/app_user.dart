@@ -1,9 +1,13 @@
 enum UserRole {
   client,
-  admin;
+  admin,
+  barber;
 
-  static UserRole fromDb(String value) =>
-      value == 'admin' ? UserRole.admin : UserRole.client;
+  static UserRole fromDb(String value) => switch (value) {
+        'admin' => UserRole.admin,
+        'barber' => UserRole.barber,
+        _ => UserRole.client,
+      };
 }
 
 /// Authenticated user profile (row in `public.users`, keyed to auth uid).
@@ -27,6 +31,10 @@ class AppUser {
   final DateTime? createdAt;
 
   bool get isAdmin => role == UserRole.admin;
+  bool get isBarber => role == UserRole.barber;
+
+  /// Admin or barber — has access to the management panel.
+  bool get isStaff => role == UserRole.admin || role == UserRole.barber;
 
   factory AppUser.fromMap(Map<String, dynamic> map) {
     return AppUser(

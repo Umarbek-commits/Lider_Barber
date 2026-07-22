@@ -23,25 +23,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       final user = ref.read(currentUserProvider).value;
 
       // Route a signed-in user off the login screen — but only once the role is
-      // known, otherwise the redirect races the profile load and an admin lands
-      // in the client cabinet. While the profile loads, stay put; the router
+      // known, otherwise the redirect races the profile load and staff land in
+      // the client cabinet. While the profile loads, stay put; the router
       // re-evaluates when currentUserProvider resolves.
       if (path == '/login' && signedIn && user != null) {
-        return user.isAdmin ? '/admin' : '/account';
+        return user.isStaff ? '/admin' : '/account';
       }
 
-      // Client cabinet: require sign-in; an admin belongs in the panel.
+      // Client cabinet: require sign-in; staff belong in the panel.
       if (path == '/account') {
         if (!signedIn) return '/login';
-        if (user?.isAdmin == true) return '/admin';
+        if (user?.isStaff == true) return '/admin';
       }
 
       if (!path.startsWith('/admin')) return null;
 
-      // Admin area requires a configured backend + admin role.
+      // Panel requires a configured backend + staff role (admin or barber).
       if (!signedIn) return '/login';
       // While the profile is still loading, let the page render its own spinner.
-      if (user != null && !user.isAdmin) return '/';
+      if (user != null && !user.isStaff) return '/';
       return null;
     },
     routes: [

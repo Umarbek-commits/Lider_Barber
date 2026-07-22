@@ -7,6 +7,7 @@ import '../../../data/admin_providers.dart';
 import '../../../models/schedule.dart';
 import '../../../models/schedule_exception.dart';
 import '../../../shared/widgets/skeleton.dart';
+import 'masters_section.dart';
 
 const _weekdayNames = {
   1: 'Понедельник',
@@ -29,6 +30,8 @@ class SettingsTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        const MastersSection(),
+        const SizedBox(height: 28),
         const Text('Рабочий график', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
         const SizedBox(height: 12),
         schedules.when(
