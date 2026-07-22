@@ -93,6 +93,25 @@ class AdminRepository {
     await supabase.rpc('remove_barber', params: {'p_user_id': userId});
   }
 
+  /// Average rating + review count per barber id (from rated bookings).
+  Future<Map<String, ({double avg, int count})>> barberRatings() async {
+    final rows = await supabase
+        .from('bookings')
+        .select('accepted_by, rating')
+        .not('rating', 'is', null)
+        .not('accepted_by', 'is', null);
+    final sums = <String, int>{};
+    final counts = <String, int>{};
+    for (final r in rows) {
+      final id = r['accepted_by'] as String;
+      sums[id] = (sums[id] ?? 0) + (r['rating'] as num).toInt();
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return {
+      for (final id in counts.keys) id: (avg: sums[id]! / counts[id]!, count: counts[id]!),
+    };
+  }
+
   /// Move a booking to a new start, preserving its duration.
   Future<void> moveBooking({
     required Booking booking,

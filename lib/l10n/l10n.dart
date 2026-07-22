@@ -135,6 +135,12 @@ class T {
   String get cancelYes => _('Отменить запись', 'Жазылууну жокко чыгаруу');
   String get no => _('Нет', 'Жок');
   String get cancelFailed => _('Не удалось отменить', 'Жокко чыгаруу мүмкүн болбоду');
+  String get rate => _('Оценить', 'Баалоо');
+  String get rateVisit => _('Оцените визит', 'Сапарды баалаңыз');
+  String get reviewHint =>
+      _('Ваш отзыв (необязательно)', 'Пикириңиз (милдеттүү эмес)');
+  String get send => _('Отправить', 'Жиберүү');
+  String get yourReview => _('Ваш отзыв', 'Сиздин пикириңиз');
 
   // Login page
   String get login => _('Вход', 'Кирүү');

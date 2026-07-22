@@ -48,6 +48,11 @@ final adminNewsProvider = FutureProvider<List<NewsItem>>((ref) {
   return ref.watch(adminRepositoryProvider).news();
 });
 
+final barberRatingsProvider =
+    FutureProvider<Map<String, ({double avg, int count})>>((ref) {
+  return ref.watch(adminRepositoryProvider).barberRatings();
+});
+
 /// Map of staff id → display name, to resolve "accepted by" on bookings.
 final staffNamesProvider = FutureProvider<Map<String, String>>((ref) async {
   final staff = await ref.watch(adminRepositoryProvider).staff();

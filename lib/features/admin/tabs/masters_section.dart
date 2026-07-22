@@ -5,6 +5,7 @@ import '../../../app/theme.dart';
 import '../../../data/admin_providers.dart';
 import '../../../models/app_user.dart';
 import '../../../shared/widgets/skeleton.dart';
+import '../../../shared/widgets/stars.dart';
 
 /// Admin-only: add/list the shop's barbers. Barbers log in with the email +
 /// password set here and get panel access (accept/serve bookings).
@@ -14,6 +15,7 @@ class MastersSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final barbers = ref.watch(adminBarbersProvider);
+    final ratings = ref.watch(barberRatingsProvider).value ?? const {};
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -42,6 +44,7 @@ class MastersSection extends ConsumerWidget {
                   children: list
                       .map((b) => _BarberRow(
                             barber: b,
+                            rating: ratings[b.id],
                             onRemove: () async {
                               await ref.read(adminRepositoryProvider).removeBarber(b.id);
                               ref.invalidate(adminBarbersProvider);
@@ -65,8 +68,9 @@ class MastersSection extends ConsumerWidget {
 }
 
 class _BarberRow extends StatelessWidget {
-  const _BarberRow({required this.barber, required this.onRemove});
+  const _BarberRow({required this.barber, required this.onRemove, this.rating});
   final AppUser barber;
+  final ({double avg, int count})? rating;
   final VoidCallback onRemove;
 
   @override
@@ -93,6 +97,18 @@ class _BarberRow extends StatelessWidget {
               children: [
                 Text(barber.name ?? 'Мастер', style: const TextStyle(fontWeight: FontWeight.w600)),
                 Text(barber.phone, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                if (rating != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        Stars(rating: rating!.avg.round(), size: 14),
+                        const SizedBox(width: 6),
+                        Text('${rating!.avg.toStringAsFixed(1)} (${rating!.count})',
+                            style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

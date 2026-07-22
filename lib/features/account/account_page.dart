@@ -11,6 +11,7 @@ import '../../models/booking_status.dart';
 import '../auth/auth_controller.dart';
 import '../../shared/widgets/page_shell.dart';
 import '../../shared/widgets/skeleton.dart';
+import '../../shared/widgets/stars.dart';
 
 /// Client cabinet: upcoming bookings (with cancel) and visit history (with repeat).
 class AccountPage extends ConsumerWidget {
@@ -118,10 +119,47 @@ class AccountPage extends ConsumerWidget {
                   onPressed: () => context.go('/book?service=${b.serviceId}'),
                   child: Text(t.repeat),
                 ),
+                footer: _ratingFooter(context, ref, t, b),
               )),
         ],
       ],
     );
+  }
+
+  /// Rating row for a completed visit: shows given stars, or an "Оценить" button.
+  Widget? _ratingFooter(BuildContext context, WidgetRef ref, T t, Booking b) {
+    if (b.status != BookingStatus.completed) return null;
+    if (b.rating != null) {
+      return Row(
+        children: [
+          Stars(rating: b.rating!),
+          if ((b.review ?? '').isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text('«${b.review}»',
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ],
+      );
+    }
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: OutlinedButton.icon(
+        onPressed: () => _rate(context, ref, t, b),
+        icon: const Icon(Icons.star_border_rounded, size: 18),
+        label: Text(t.rate),
+      ),
+    );
+  }
+
+  Future<void> _rate(BuildContext context, WidgetRef ref, T t, Booking b) async {
+    final done = await showDialog<bool>(
+      context: context,
+      builder: (_) => _RateDialog(booking: b, t: t),
+    );
+    if (done == true) ref.invalidate(myBookingsProvider);
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref, T t, Booking b) async {
@@ -168,10 +206,11 @@ class _Header extends StatelessWidget {
 
 class _BookingCard extends StatelessWidget {
   const _BookingCard(
-      {required this.booking, required this.statusLabel, required this.trailing});
+      {required this.booking, required this.statusLabel, required this.trailing, this.footer});
   final Booking booking;
   final String statusLabel;
   final Widget trailing;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -183,25 +222,112 @@ class _BookingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.white12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${DateFormat('d MMMM, EEEE', 'ru').format(booking.bookingDate)} • ${booking.startTime}',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${DateFormat('d MMMM, EEEE', 'ru').format(booking.bookingDate)} • ${booking.startTime}',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('${booking.serviceName ?? ''} — $statusLabel',
+                        style: const TextStyle(color: Colors.white60, fontSize: 13)),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text('${booking.serviceName ?? ''} — $statusLabel',
-                    style: const TextStyle(color: Colors.white60, fontSize: 13)),
-              ],
-            ),
+              ),
+              trailing,
+            ],
           ),
-          trailing,
+          if (footer != null) ...[
+            const Divider(height: 18, color: Colors.white12),
+            footer!,
+          ],
         ],
       ),
     );
+  }
+}
+
+/// Star + review dialog for a completed visit.
+class _RateDialog extends ConsumerStatefulWidget {
+  const _RateDialog({required this.booking, required this.t});
+  final Booking booking;
+  final T t;
+
+  @override
+  ConsumerState<_RateDialog> createState() => _RateDialogState();
+}
+
+class _RateDialogState extends ConsumerState<_RateDialog> {
+  int _rating = 5;
+  final _review = TextEditingController();
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _review.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.t;
+    return AlertDialog(
+      backgroundColor: AppColors.surface,
+      title: Text(t.rateVisit),
+      content: SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.booking.acceptedByName != null) ...[
+              Text('Мастер: ${widget.booking.acceptedByName}',
+                  style: const TextStyle(color: Colors.white60)),
+              const SizedBox(height: 8),
+            ],
+            StarPicker(value: _rating, onChanged: (v) => setState(() => _rating = v)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _review,
+              maxLines: 3,
+              decoration: InputDecoration(labelText: t.reviewHint, border: const OutlineInputBorder()),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.no)),
+        FilledButton(
+          onPressed: _busy ? null : _submit,
+          child: _busy
+              ? const SizedBox(
+                  width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+              : Text(t.send),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _submit() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(clientRepositoryProvider).leaveReview(
+            bookingId: widget.booking.id,
+            rating: _rating,
+            review: _review.text.trim().isEmpty ? null : _review.text.trim(),
+          );
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      setState(() => _busy = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(widget.t.error(e))));
+      }
+    }
   }
 }

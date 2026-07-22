@@ -21,4 +21,16 @@ class ClientRepository {
   Future<void> cancel(String bookingId) async {
     await supabase.rpc('cancel_booking', params: {'p_id': bookingId});
   }
+
+  Future<void> leaveReview({
+    required String bookingId,
+    required int rating,
+    String? review,
+  }) async {
+    await supabase.rpc('leave_review', params: {
+      'p_booking_id': bookingId,
+      'p_rating': rating,
+      'p_review': review,
+    });
+  }
 }

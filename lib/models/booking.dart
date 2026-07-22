@@ -19,6 +19,8 @@ class Booking {
     this.acceptedBy,
     this.acceptedByName,
     this.acceptedAt,
+    this.rating,
+    this.review,
   });
 
   final String id;
@@ -47,6 +49,10 @@ class Booking {
   final String? acceptedByName;
   final DateTime? acceptedAt;
 
+  /// Client's rating (1–5) and review for a completed visit.
+  final int? rating;
+  final String? review;
+
   factory Booking.fromMap(Map<String, dynamic> map) {
     final client = map['clients'] as Map<String, dynamic>?;
     final service = map['services'] as Map<String, dynamic>?;
@@ -71,6 +77,8 @@ class Booking {
       acceptedAt: map['accepted_at'] == null
           ? null
           : DateTime.parse(map['accepted_at'] as String),
+      rating: (map['rating'] as num?)?.toInt(),
+      review: map['review'] as String?,
     );
   }
 

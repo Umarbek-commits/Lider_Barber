@@ -6,6 +6,7 @@ import '../../../app/theme.dart';
 import '../../../data/admin_providers.dart';
 import '../../../models/client.dart';
 import '../../../shared/widgets/skeleton.dart';
+import '../../../shared/widgets/stars.dart';
 
 class ClientsTab extends ConsumerStatefulWidget {
   const ClientsTab({super.key});
@@ -180,27 +181,52 @@ class _ClientCard extends ConsumerWidget {
                         children: list.map((b) {
                           final master =
                               b.acceptedBy == null ? null : staffNames[b.acceptedBy];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            child: Row(
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
                                         '${DateFormat('d.MM.yy').format(b.bookingDate)} ${b.startTime} • ${b.serviceName ?? ''}',
                                         style: const TextStyle(color: Colors.white70),
                                       ),
-                                      if (master != null)
-                                        Text('Мастер: $master',
-                                            style: const TextStyle(
-                                                color: AppColors.gold, fontSize: 12)),
-                                    ],
-                                  ),
+                                    ),
+                                    Text(b.status.label,
+                                        style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                                  ],
                                 ),
-                                Text(b.status.label,
-                                    style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                                if (master != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: Text('Мастер: $master',
+                                        style: const TextStyle(color: AppColors.gold, fontSize: 12)),
+                                  ),
+                                if (b.rating != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Row(
+                                      children: [
+                                        Stars(rating: b.rating!, size: 14),
+                                        if ((b.review ?? '').isNotEmpty) ...[
+                                          const SizedBox(width: 6),
+                                          Expanded(
+                                            child: Text('«${b.review}»',
+                                                style: const TextStyle(
+                                                    color: Colors.white54, fontSize: 12),
+                                                overflow: TextOverflow.ellipsis),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
                               ],
                             ),
                           );
