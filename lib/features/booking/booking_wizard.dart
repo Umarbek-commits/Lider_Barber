@@ -185,38 +185,47 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
           Text(t.chooseService, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 12,
-            runSpacing: 12,
+            spacing: 10,
+            runSpacing: 10,
             children: list.map((s) {
               final selected = _service?.id == s.id;
               return GestureDetector(
-                onTap: () => setState(() => _service = s),
+                onTap: () {
+                  setState(() => _service = s);
+                  _go(1); // auto-advance to date
+                },
                 child: Container(
-                  width: isMobile ? double.infinity : 240,
-                  padding: const EdgeInsets.all(16),
+                  width: isMobile ? double.infinity : 220,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
                     color: selected ? AppColors.surfaceRaised : const Color(0xFF161616),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: selected ? AppColors.gold : Colors.white12),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(s.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      Text(s.priceLabel,
-                          style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700)),
+                      Text(s.name,
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 4),
-                      Text('${s.durationMin} ${t.minutesShort}',
-                          style: const TextStyle(color: Colors.white60)),
+                      Row(
+                        children: [
+                          Text(s.priceLabel,
+                              style: const TextStyle(
+                                  color: AppColors.gold,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13)),
+                          const SizedBox(width: 10),
+                          Text('${s.durationMin} ${t.minutesShort}',
+                              style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 20),
-          FilledButton(onPressed: _service == null ? null : () => _go(1), child: Text(t.next)),
         ],
       ),
     );
@@ -240,16 +249,19 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
               label: Text(DateFormat('E d.MM', 'ru').format(d)),
               selected: selected,
               onSelected: works
-                  ? (_) => setState(() {
+                  ? (_) {
+                      setState(() {
                         _date = d;
                         _slot = null;
-                      })
+                      });
+                      _go(2); // auto-advance to time
+                    }
                   : null,
             );
           }).toList(),
         ),
         const SizedBox(height: 20),
-        _nav(t, isMobile, onBack: () => _go(0), onNext: _date == null ? null : () => _go(2)),
+        _backButton(t, () => _go(0)),
       ],
     );
   }
@@ -278,13 +290,16 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
                     return ChoiceChip(
                       label: Text(DateFormat.Hm().format(tm)),
                       selected: selected,
-                      onSelected: (_) => setState(() => _slot = tm),
+                      onSelected: (_) {
+                        setState(() => _slot = tm);
+                        _go(3); // auto-advance to details
+                      },
                     );
                   }).toList(),
                 ),
         ),
         const SizedBox(height: 20),
-        _nav(t, isMobile, onBack: () => _go(1), onNext: _slot == null ? null : () => _go(3)),
+        _backButton(t, () => _go(1)),
       ],
     );
   }
@@ -388,6 +403,13 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _backButton(T t, VoidCallback onBack) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(onPressed: onBack, child: Text(t.back)),
     );
   }
 
