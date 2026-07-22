@@ -6,6 +6,7 @@ import '../core/supabase_client.dart';
 import '../features/booking/booking_logic.dart';
 import '../models/app_user.dart';
 import '../models/booking.dart';
+import '../models/news_item.dart';
 import '../models/service.dart';
 import 'booking_repository.dart';
 import 'catalog_repository.dart';
@@ -28,6 +29,17 @@ final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
 
 final servicesProvider = FutureProvider<List<Service>>((ref) {
   return ref.watch(catalogRepositoryProvider).activeServices();
+});
+
+/// Active announcements shown to clients on the home screen.
+final newsProvider = FutureProvider<List<NewsItem>>((ref) async {
+  if (!Env.hasSupabase) return const [];
+  final rows = await supabase
+      .from('news')
+      .select()
+      .eq('is_active', true)
+      .order('created_at', ascending: false);
+  return rows.map((r) => NewsItem.fromMap(r)).toList();
 });
 
 /// Parameters for computing free slots for one service on one day.

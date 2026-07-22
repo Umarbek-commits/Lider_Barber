@@ -3,6 +3,7 @@ import '../models/app_user.dart';
 import '../models/booking.dart';
 import '../models/booking_status.dart';
 import '../models/client.dart';
+import '../models/news_item.dart';
 import '../models/schedule.dart';
 import '../models/schedule_exception.dart';
 
@@ -218,6 +219,26 @@ class AdminRepository {
 
   Future<void> deleteException(String id) async {
     await supabase.from('schedule_exceptions').delete().eq('id', id);
+  }
+
+  // --- News ------------------------------------------------------------------
+
+  Future<List<NewsItem>> news() async {
+    final rows =
+        await supabase.from('news').select().order('created_at', ascending: false);
+    return rows.map((r) => NewsItem.fromMap(r)).toList();
+  }
+
+  Future<void> addNews(String text) async {
+    await supabase.from('news').insert({'text': text});
+  }
+
+  Future<void> setNewsActive(String id, bool active) async {
+    await supabase.from('news').update({'is_active': active}).eq('id', id);
+  }
+
+  Future<void> deleteNews(String id) async {
+    await supabase.from('news').delete().eq('id', id);
   }
 
   static int _minutes(String hhmm) {

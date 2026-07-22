@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_user.dart';
 import '../models/booking.dart';
 import '../models/client.dart';
+import '../models/news_item.dart';
 import '../models/schedule.dart';
 import '../models/schedule_exception.dart';
 import 'admin_repository.dart';
@@ -41,6 +42,10 @@ final adminExceptionsProvider = FutureProvider<List<ScheduleException>>((ref) {
 
 final adminBarbersProvider = FutureProvider<List<AppUser>>((ref) {
   return ref.watch(adminRepositoryProvider).barbers();
+});
+
+final adminNewsProvider = FutureProvider<List<NewsItem>>((ref) {
+  return ref.watch(adminRepositoryProvider).news();
 });
 
 /// Map of staff id → display name, to resolve "accepted by" on bookings.

@@ -20,7 +20,11 @@ class MastersSection extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Мастера', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            const Expanded(
+              child: Text('Барберы входят по email и паролю и принимают записи.',
+                  style: TextStyle(color: Colors.white60)),
+            ),
+            const SizedBox(width: 12),
             FilledButton.icon(
               onPressed: () => _add(context, ref),
               icon: const Icon(Icons.person_add_alt_1),
@@ -28,9 +32,6 @@ class MastersSection extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        const Text('Барберы входят по email и паролю и принимают записи.',
-            style: TextStyle(color: Colors.white60)),
         const SizedBox(height: 12),
         barbers.when(
           loading: () => const SkeletonList(count: 2, cardHeight: 56),

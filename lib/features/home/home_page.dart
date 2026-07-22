@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/theme.dart';
 import '../../core/constants.dart';
+import '../../data/providers.dart';
 import '../../l10n/l10n.dart';
 import '../../shared/widgets/page_shell.dart';
 
@@ -16,11 +17,17 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 760;
     final t = ref.watch(tProvider);
+    final news = ref.watch(newsProvider).value ?? const [];
 
     return PageShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          for (final n in news) ...[
+            _NewsBanner(text: n.text),
+            const SizedBox(height: 12),
+          ],
+          if (news.isNotEmpty) const SizedBox(height: 8),
           _hero(context, t, isMobile),
           const SizedBox(height: 24),
         ],
@@ -77,6 +84,35 @@ class HomePage extends ConsumerWidget {
             onPressed: () => context.go('/book'),
             icon: const Icon(Icons.arrow_forward_rounded),
             label: Text(t.bookOnline),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Announcement banner shown to clients on the home screen.
+class _NewsBanner extends StatelessWidget {
+  const _NewsBanner({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.gold.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.campaign_rounded, color: AppColors.gold, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(text, style: const TextStyle(color: Colors.white, height: 1.4)),
           ),
         ],
       ),
