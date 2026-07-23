@@ -26,4 +26,14 @@ class Env {
   /// True when both values are present (always true with the baked defaults).
   static bool get hasSupabase =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+
+  /// Web Push VAPID public key (safe to ship). The private key stays a Supabase
+  /// Edge Function secret and is never in the app.
+  static const String vapidPublicKey = String.fromEnvironment(
+    'VAPID_PUBLIC_KEY',
+    defaultValue:
+        'BDTowFRfRCDCzpX-ItRhnbBRq4Ij7BGr5mmW4BT0m-46rcaHIq48k0PMYwUjWueZXtC1kxCZdSJ_4XmKDJyk3X4',
+  );
+
+  static bool get hasPush => vapidPublicKey.isNotEmpty;
 }

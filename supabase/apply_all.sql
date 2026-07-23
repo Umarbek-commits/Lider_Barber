@@ -1,4 +1,4 @@
--- Lider Barber — full schema apply (generated from migrations/0001-0010).
+-- Lider Barber — full schema apply (generated from migrations/0001-0012).
 -- Paste this whole file into Supabase Studio → SQL Editor → Run.
 
 -- ============================================================
@@ -954,5 +954,193 @@ end;
 $$;
 
 grant execute on function public.leave_review(uuid, smallint, text) to authenticated;
+
+
+-- ============================================================
+-- migrations/0011_push.sql
+-- ============================================================
+-- Lider Barber — Web Push subscriptions (Stage 10).
+-- Each browser/device that opts in stores its push subscription here. The
+-- send-push Edge Function (service role) reads these to deliver notifications.
+
+create table if not exists public.push_subscriptions (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  endpoint   text not null unique,
+  p256dh     text not null,
+  auth       text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists push_subs_user_idx on public.push_subscriptions (user_id);
+
+alter table public.push_subscriptions enable row level security;
+
+-- A user manages only their own subscriptions. The Edge Function uses the
+-- service role, which bypasses RLS to read everyone's for sending.
+drop policy if exists push_self_all on public.push_subscriptions;
+create policy push_self_all on public.push_subscriptions
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Upsert helper: save/refresh the current user's subscription by endpoint.
+create or replace function public.save_push_subscription(
+  p_endpoint text,
+  p_p256dh   text,
+  p_auth     text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'not_authenticated' using errcode = 'insufficient_privilege';
+  end if;
+  insert into public.push_subscriptions (user_id, endpoint, p256dh, auth)
+  values (auth.uid(), p_endpoint, p_p256dh, p_auth)
+  on conflict (endpoint)
+    do update set user_id = auth.uid(), p256dh = excluded.p256dh, auth = excluded.auth;
+end;
+$$;
+
+grant execute on function public.save_push_subscription(text, text, text) to authenticated;
+
+-- Resolve push targets for an audience. Called by the send-push Edge Function
+-- (service role). 'staff' = admin+barber, 'clients' = clients, 'user' = ids.
+create or replace function public.push_targets(p_audience text, p_user_ids uuid[] default null)
+returns table (endpoint text, p256dh text, auth text)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select s.endpoint, s.p256dh, s.auth
+  from public.push_subscriptions s
+  join public.users u on u.id = s.user_id
+  where (
+    (p_audience = 'staff'   and u.role in ('admin', 'barber')) or
+    (p_audience = 'clients' and u.role = 'client') or
+    (p_audience = 'user'    and s.user_id = any(p_user_ids))
+  );
+$$;
+
+revoke all on function public.push_targets(text, uuid[]) from public;
+grant execute on function public.push_targets(text, uuid[]) to service_role;
+
+-- Remove a dead subscription (called by the function on 404/410).
+create or replace function public.delete_push_subscription(p_endpoint text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.push_subscriptions where endpoint = p_endpoint;
+$$;
+
+revoke all on function public.delete_push_subscription(text) from public;
+grant execute on function public.delete_push_subscription(text) to service_role;
+
+
+-- ============================================================
+-- migrations/0012_push_reminders.sql
+-- ============================================================
+-- Lider Barber — scheduled push reminders (Stage 10).
+-- A cron job (every 5 min) sends "1 day before" and "1 hour before" reminders
+-- to the client for their upcoming bookings, via the send-push Edge Function.
+--
+-- New-booking (staff) and new-news (clients) notifications are wired separately
+-- as Database Webhooks in the Supabase dashboard (see supabase/PUSH_SETUP.md).
+
+create extension if not exists pg_net;
+create extension if not exists pg_cron;
+
+alter table public.bookings add column if not exists reminded_1d boolean not null default false;
+alter table public.bookings add column if not exists reminded_1h boolean not null default false;
+
+-- Where to call the function + the shared secret. Admin fills one row (see setup).
+create table if not exists public.push_config (
+  id           int primary key default 1 check (id = 1),
+  function_url text not null,
+  push_secret  text not null
+);
+alter table public.push_config enable row level security; -- locked; only definer funcs read
+
+-- Local wall-clock of a booking as a timestamptz (shop is in Asia/Bishkek, UTC+6).
+create or replace function public.booking_at(p_date date, p_start time)
+returns timestamptz
+language sql
+immutable
+as $$
+  select (p_date + p_start) at time zone 'Asia/Bishkek';
+$$;
+
+create or replace function public.send_due_reminders()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  cfg record;
+  b   record;
+begin
+  select * into cfg from public.push_config where id = 1;
+  if not found then return; end if;
+
+  -- ~1 day before
+  for b in
+    select bk.id, bk.user_id, bk.start_time, s.name as service
+    from public.bookings bk
+    join public.services s on s.id = bk.service_id
+    where bk.status in ('pending', 'confirmed')
+      and bk.user_id is not null
+      and not bk.reminded_1d
+      and public.booking_at(bk.booking_date, bk.start_time)
+            between now() + interval '23 hours' and now() + interval '25 hours'
+  loop
+    perform net.http_post(
+      url := cfg.function_url,
+      headers := jsonb_build_object('Content-Type', 'application/json', 'x-push-secret', cfg.push_secret),
+      body := jsonb_build_object(
+        'audience', 'user',
+        'userIds', jsonb_build_array(b.user_id),
+        'title', 'Напоминание о записи',
+        'body', b.service || ' завтра в ' || to_char(b.start_time, 'HH24:MI'),
+        'url', '/#/account')
+    );
+    update public.bookings set reminded_1d = true where id = b.id;
+  end loop;
+
+  -- ~1 hour before
+  for b in
+    select bk.id, bk.user_id, bk.start_time, s.name as service
+    from public.bookings bk
+    join public.services s on s.id = bk.service_id
+    where bk.status in ('pending', 'confirmed')
+      and bk.user_id is not null
+      and not bk.reminded_1h
+      and public.booking_at(bk.booking_date, bk.start_time)
+            between now() + interval '50 minutes' and now() + interval '70 minutes'
+  loop
+    perform net.http_post(
+      url := cfg.function_url,
+      headers := jsonb_build_object('Content-Type', 'application/json', 'x-push-secret', cfg.push_secret),
+      body := jsonb_build_object(
+        'audience', 'user',
+        'userIds', jsonb_build_array(b.user_id),
+        'title', 'Скоро запись',
+        'body', b.service || ' через час, в ' || to_char(b.start_time, 'HH24:MI'),
+        'url', '/#/account')
+    );
+    update public.bookings set reminded_1h = true where id = b.id;
+  end loop;
+end;
+$$;
+
+-- Run every 5 minutes.
+select cron.unschedule('lider-reminders') where exists (
+  select 1 from cron.job where jobname = 'lider-reminders');
+select cron.schedule('lider-reminders', '*/5 * * * *', $$select public.send_due_reminders();$$);
 
 

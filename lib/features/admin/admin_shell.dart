@@ -7,6 +7,7 @@ import '../../core/constants.dart';
 import '../../data/providers.dart';
 import '../../shared/widgets/theme_toggle.dart';
 import '../auth/auth_controller.dart';
+import '../push/push_button.dart';
 import 'tabs/clients_tab.dart';
 import 'tabs/dashboard_tab.dart';
 import 'tabs/schedule_tab.dart';
@@ -74,6 +75,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                   child: Text(user.name ?? user.phone,
                       style: TextStyle(color: context.faint, fontSize: 13))),
             ),
+          const PushBell(),
           const ThemeToggle(),
           IconButton(
               onPressed: _signOut, icon: const Icon(Icons.logout_rounded), tooltip: 'Выйти'),

@@ -9,6 +9,7 @@ import '../../l10n/l10n.dart';
 import '../../models/booking.dart';
 import '../../models/booking_status.dart';
 import '../auth/auth_controller.dart';
+import '../push/push_button.dart';
 import '../../shared/widgets/page_shell.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/stars.dart';
@@ -44,6 +45,7 @@ class AccountPage extends ConsumerWidget {
                 child: Text(t.myBookings,
                     style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
               ),
+              const PushBell(),
               IconButton(
                 onPressed: () => ref.invalidate(myBookingsProvider),
                 icon: const Icon(Icons.refresh_rounded),
