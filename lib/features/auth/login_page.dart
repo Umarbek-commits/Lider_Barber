@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/theme.dart';
 import '../../data/providers.dart';
 import '../../l10n/l10n.dart';
 import '../../shared/widgets/page_shell.dart';
@@ -69,10 +70,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 20),
               Text(_barberMode ? t.barberLogin : t.login,
                   style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 _barberMode ? t.barberLoginSubtitle : t.loginGoogleSubtitle,
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: context.muted),
               ),
               const SizedBox(height: 24),
               if (!configured)
@@ -128,7 +129,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       onPressed: _busy || !configured ? null : () => _run(auth.signInWithGoogle),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        side: const BorderSide(color: Colors.white24),
+        side: BorderSide(color: context.border),
       ),
       icon: _busy
           ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
@@ -160,9 +161,9 @@ class _Notice extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white10,
+          color: context.border,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text(text, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        child: Text(text, style: TextStyle(color: context.muted, fontSize: 13)),
       );
 }

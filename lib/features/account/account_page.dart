@@ -60,7 +60,7 @@ class AccountPage extends ConsumerWidget {
             ],
           ),
           if (user != null)
-            Text(user.name ?? user.phone, style: const TextStyle(color: Colors.white60)),
+            Text(user.name ?? user.phone, style: TextStyle(color: context.faint)),
           const SizedBox(height: 20),
           bookings.when(
             loading: () => const SkeletonList(count: 3, cardHeight: 64),
@@ -87,8 +87,8 @@ class AccountPage extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.noBookings, style: const TextStyle(color: Colors.white70)),
-          const SizedBox(height: 12),
+          Text(t.noBookings, style: TextStyle(color: context.muted)),
+          SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => context.go('/book'),
             icon: const Icon(Icons.add),
@@ -138,10 +138,10 @@ class AccountPage extends ConsumerWidget {
         children: [
           Stars(rating: b.rating!),
           if ((b.review ?? '').isNotEmpty) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: Text('«${b.review}»',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: context.faint, fontSize: 12),
                   overflow: TextOverflow.ellipsis),
             ),
           ],
@@ -170,7 +170,7 @@ class AccountPage extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.surface,
         title: Text(t.cancelQuestion),
         content: Text(
             '${DateFormat('d MMMM, EEEE', 'ru').format(b.bookingDate)} — ${b.startTime}\n${b.serviceName ?? ''}'),
@@ -222,9 +222,9 @@ class _BookingCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,9 +239,9 @@ class _BookingCard extends StatelessWidget {
                       '${DateFormat('d MMMM, EEEE', 'ru').format(booking.bookingDate)} • ${booking.startTime}',
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text('${booking.serviceName ?? ''} — $statusLabel',
-                        style: const TextStyle(color: Colors.white60, fontSize: 13)),
+                        style: TextStyle(color: context.faint, fontSize: 13)),
                   ],
                 ),
               ),
@@ -249,7 +249,7 @@ class _BookingCard extends StatelessWidget {
             ],
           ),
           if (footer != null) ...[
-            const Divider(height: 18, color: Colors.white12),
+            Divider(height: 18, color: context.border),
             footer!,
           ],
         ],
@@ -283,7 +283,7 @@ class _RateDialogState extends ConsumerState<_RateDialog> {
   Widget build(BuildContext context) {
     final t = widget.t;
     return AlertDialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surface,
       title: Text(t.rateVisit),
       content: SizedBox(
         width: 360,
@@ -292,7 +292,7 @@ class _RateDialogState extends ConsumerState<_RateDialog> {
           children: [
             if (widget.booking.acceptedByName != null) ...[
               Text('Мастер: ${widget.booking.acceptedByName}',
-                  style: const TextStyle(color: Colors.white60)),
+                  style: TextStyle(color: context.faint)),
               const SizedBox(height: 8),
             ],
             StarPicker(value: _rating, onChanged: (v) => setState(() => _rating = v)),

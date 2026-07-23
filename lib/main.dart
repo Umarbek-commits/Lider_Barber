@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/router.dart';
 import 'app/theme.dart';
+import 'app/theme_mode.dart';
 import 'core/supabase_client.dart';
 import 'l10n/l10n.dart';
 
@@ -12,8 +13,12 @@ Future<void> main() async {
   await initializeDateFormatting('ru');
   await initSupabase(); // no-op when keys aren't provided
   final locale = await loadSavedLocale();
+  final themeMode = await loadSavedThemeMode();
   runApp(ProviderScope(
-    overrides: [initialLocaleProvider.overrideWithValue(locale)],
+    overrides: [
+      initialLocaleProvider.overrideWithValue(locale),
+      initialThemeModeProvider.overrideWithValue(themeMode),
+    ],
     child: const LiderBarberApp(),
   ));
 }
@@ -24,10 +29,13 @@ class LiderBarberApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final themeMode = ref.watch(themeModeControllerProvider);
     return MaterialApp.router(
       title: 'Lider Barber',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),
+      theme: buildLightTheme(),
+      darkTheme: buildDarkTheme(),
+      themeMode: themeMode,
       routerConfig: router,
     );
   }

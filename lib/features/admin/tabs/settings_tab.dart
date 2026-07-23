@@ -82,9 +82,9 @@ class _SettingsRow extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -93,9 +93,9 @@ class _SettingsRow extends StatelessWidget {
           backgroundColor: AppColors.gold.withValues(alpha: 0.15),
           child: Icon(item.icon, color: AppColors.gold, size: 20),
         ),
-        title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text(item.subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+        title: Text(item.title, style: TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(item.subtitle, style: TextStyle(color: context.faint, fontSize: 12)),
+        trailing: Icon(Icons.chevron_right, color: context.fainter),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => item.page),
         ),

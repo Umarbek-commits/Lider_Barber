@@ -28,7 +28,7 @@ class WorkingHoursPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Часы работы по дням недели.', style: TextStyle(color: Colors.white60)),
+          Text('Часы работы по дням недели.', style: TextStyle(color: context.faint)),
           const SizedBox(height: 12),
           schedules.when(
             loading: () => const SkeletonList(count: 7, cardHeight: 72),
@@ -74,9 +74,9 @@ class _WeekdayRow extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,11 +85,11 @@ class _WeekdayRow extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(weekdayNames[weekday]!,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                    style: TextStyle(fontWeight: FontWeight.w600)),
               ),
               Text('Выходной',
                   style: TextStyle(
-                      color: isDayOff ? AppColors.gold : Colors.white38, fontSize: 12)),
+                      color: isDayOff ? AppColors.gold : context.fainter, fontSize: 12)),
               Switch(value: isDayOff, onChanged: (v) => save(dayOff: v)),
             ],
           ),
@@ -99,7 +99,7 @@ class _WeekdayRow extends ConsumerWidget {
               child: Row(
                 children: [
                   TimeButton(label: start, onPick: (t) => save(s: t)),
-                  const Text('  –  ', style: TextStyle(color: Colors.white38)),
+                  Text('  –  ', style: TextStyle(color: context.fainter)),
                   TimeButton(label: end, onPick: (t) => save(e: t)),
                 ],
               ),

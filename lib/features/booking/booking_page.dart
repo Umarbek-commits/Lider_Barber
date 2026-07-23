@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/theme.dart';
 import '../../data/providers.dart';
 import '../../l10n/l10n.dart';
 import '../../models/service.dart';
@@ -33,8 +34,8 @@ class BookingPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(t.bookingTitle, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          Text(t.bookingSubtitle, style: const TextStyle(color: Colors.white70)),
+          SizedBox(height: 8),
+          Text(t.bookingSubtitle, style: TextStyle(color: context.muted)),
           const SizedBox(height: 24),
           BookingWizard(initialService: initial),
           const SizedBox(height: 40),

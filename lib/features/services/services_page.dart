@@ -21,8 +21,8 @@ class ServicesPage extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(t.ourServices, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          Text(t.servicesSubtitle, style: const TextStyle(color: Colors.white70)),
+          SizedBox(height: 8),
+          Text(t.servicesSubtitle, style: TextStyle(color: context.muted)),
           const SizedBox(height: 24),
           services.when(
             loading: () => const SkeletonList(count: 4, cardHeight: 72),
@@ -33,9 +33,9 @@ class ServicesPage extends ConsumerWidget {
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: context.surface,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white12),
+                          border: Border.all(color: context.border),
                         ),
                         child: Row(
                           children: [
@@ -46,9 +46,9 @@ class ServicesPage extends ConsumerWidget {
                                   Text(s.name,
                                       style: const TextStyle(
                                           fontSize: 18, fontWeight: FontWeight.w600)),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text('${s.durationMin} ${t.minutesShort}',
-                                      style: const TextStyle(color: Colors.white60)),
+                                      style: TextStyle(color: context.faint)),
                                 ],
                               ),
                             ),
@@ -63,7 +63,7 @@ class ServicesPage extends ConsumerWidget {
                   .toList(),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () => context.go('/book'),
             icon: const Icon(Icons.calendar_today_rounded),

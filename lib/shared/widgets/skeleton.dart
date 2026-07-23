@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme.dart';
+
 /// Animated shimmer wrapper. Put opaque [SkeletonBox]es inside; the moving
 /// highlight is painted over them.
 class Shimmer extends StatefulWidget {
@@ -22,6 +24,9 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final dark = context.isDark;
+    final base = dark ? const Color(0xFF1B1B1B) : const Color(0xFFE4E4E8);
+    final highlight = dark ? const Color(0xFF2C2C2C) : const Color(0xFFF4F4F6);
     return AnimatedBuilder(
       animation: _c,
       builder: (context, child) {
@@ -32,7 +37,7 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
             return LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
-              colors: const [Color(0xFF1B1B1B), Color(0xFF2C2C2C), Color(0xFF1B1B1B)],
+              colors: [base, highlight, base],
               stops: [
                 (v - 0.3).clamp(0.0, 1.0),
                 v.clamp(0.0, 1.0),
@@ -61,7 +66,7 @@ class SkeletonBox extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white, // repainted by the shimmer shader
+        color: context.surfaceAlt, // repainted by the shimmer shader
         borderRadius: BorderRadius.circular(radius),
       ),
     );

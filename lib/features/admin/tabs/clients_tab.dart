@@ -44,7 +44,7 @@ class _ClientsTabState extends ConsumerState<ClientsTab> {
         Expanded(
           child: RefreshIndicator(
             color: AppColors.gold,
-            backgroundColor: AppColors.surface,
+            backgroundColor: context.surface,
             onRefresh: () async {
               ref.invalidate(adminClientsProvider);
               await ref.read(adminClientsProvider.future);
@@ -63,12 +63,12 @@ class _ClientsTabState extends ConsumerState<ClientsTab> {
                             c.name.toLowerCase().contains(_query) || c.phone.contains(_query))
                         .toList();
                 if (filtered.isEmpty) {
-                  return ListView(children: const [
+                  return ListView(children: [
                     Padding(
-                      padding: EdgeInsets.all(40),
+                      padding: const EdgeInsets.all(40),
                       child: Center(
                           child: Text('Ничего не найдено',
-                              style: TextStyle(color: Colors.white60))),
+                              style: TextStyle(color: context.faint))),
                     ),
                   ]);
                 }
@@ -112,9 +112,9 @@ class _ClientRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: client.isBlacklisted ? Colors.redAccent.withValues(alpha: 0.5) : Colors.white12),
+          border: Border.all(color: client.isBlacklisted ? Colors.redAccent.withValues(alpha: 0.5) : context.border),
         ),
         child: Row(
           children: [
@@ -131,18 +131,18 @@ class _ClientRow extends StatelessWidget {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(client.phone, style: const TextStyle(color: Colors.white60, fontSize: 13)),
+                  SizedBox(height: 2),
+                  Text(client.phone, style: TextStyle(color: context.faint, fontSize: 13)),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('${client.visitsCount} визитов', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                Text('${client.visitsCount} визитов', style: TextStyle(color: context.muted, fontSize: 13)),
                 if (client.lastVisit != null)
                   Text(DateFormat('d.MM.yy').format(client.lastVisit!),
-                      style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                      style: TextStyle(color: context.fainter, fontSize: 12)),
               ],
             ),
           ],
@@ -161,7 +161,7 @@ class _ClientCard extends ConsumerWidget {
     final history = ref.watch(clientBookingsProvider(client.id));
     final staffNames = ref.watch(staffNamesProvider).value ?? const <String, String>{};
     return AlertDialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surface,
       title: Text(client.name),
       content: SizedBox(
         width: 420,
@@ -170,13 +170,13 @@ class _ClientCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(client.phone, style: const TextStyle(color: Colors.white70)),
+              Text(client.phone, style: TextStyle(color: context.muted)),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _mini('Визитов', '${client.visitsCount}'),
+                  _mini(context, 'Визитов', '${client.visitsCount}'),
                   const SizedBox(width: 20),
-                  _mini('Потрачено', '${client.totalSpent} сом'),
+                  _mini(context, 'Потрачено', '${client.totalSpent} сом'),
                 ],
               ),
               const Divider(height: 28),
@@ -197,7 +197,7 @@ class _ClientCard extends ConsumerWidget {
                 loading: () => const LinearProgressIndicator(),
                 error: (e, _) => Text('Ошибка: $e'),
                 data: (list) => list.isEmpty
-                    ? const Text('Записей нет', style: TextStyle(color: Colors.white60))
+                    ? Text('Записей нет', style: TextStyle(color: context.faint))
                     : Column(
                         children: list.map((b) {
                           final master =
@@ -206,7 +206,7 @@ class _ClientCard extends ConsumerWidget {
                             margin: const EdgeInsets.symmetric(vertical: 4),
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.03),
+                              color: context.strong.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -217,11 +217,11 @@ class _ClientCard extends ConsumerWidget {
                                     Expanded(
                                       child: Text(
                                         '${DateFormat('d.MM.yy').format(b.bookingDate)} ${b.startTime} • ${b.serviceName ?? ''}',
-                                        style: const TextStyle(color: Colors.white70),
+                                        style: TextStyle(color: context.muted),
                                       ),
                                     ),
                                     Text(b.status.label,
-                                        style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                                        style: TextStyle(color: context.fainter, fontSize: 12)),
                                   ],
                                 ),
                                 if (master != null)
@@ -240,8 +240,8 @@ class _ClientCard extends ConsumerWidget {
                                           const SizedBox(width: 6),
                                           Expanded(
                                             child: Text('«${b.review}»',
-                                                style: const TextStyle(
-                                                    color: Colors.white54, fontSize: 12),
+                                                style: TextStyle(
+                                                    color: context.faint, fontSize: 12),
                                                 overflow: TextOverflow.ellipsis),
                                           ),
                                         ],
@@ -283,7 +283,7 @@ class _ClientCard extends ConsumerWidget {
     final reason = await showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.surface,
         title: const Text('Причина'),
         content: TextField(
           controller: reasonCtrl,
@@ -302,11 +302,11 @@ class _ClientCard extends ConsumerWidget {
     if (context.mounted) Navigator.pop(context);
   }
 
-  Widget _mini(String label, String value) => Column(
+  Widget _mini(BuildContext context, String label, String value) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.gold)),
-          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.gold)),
+          Text(label, style: TextStyle(color: context.faint, fontSize: 12)),
         ],
       );
 }

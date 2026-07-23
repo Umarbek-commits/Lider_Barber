@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/theme.dart';
 import '../../core/constants.dart';
 import '../../data/providers.dart';
+import '../../shared/widgets/theme_toggle.dart';
 import '../auth/auth_controller.dart';
 import 'tabs/clients_tab.dart';
 import 'tabs/dashboard_tab.dart';
@@ -70,8 +72,9 @@ class _AdminShellState extends ConsumerState<AdminShell> {
               padding: const EdgeInsets.only(right: 8),
               child: Center(
                   child: Text(user.name ?? user.phone,
-                      style: const TextStyle(color: Colors.white54, fontSize: 13))),
+                      style: TextStyle(color: context.faint, fontSize: 13))),
             ),
+          const ThemeToggle(),
           IconButton(
               onPressed: _signOut, icon: const Icon(Icons.logout_rounded), tooltip: 'Выйти'),
         ],

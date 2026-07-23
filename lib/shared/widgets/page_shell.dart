@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme.dart';
 import '../../core/constants.dart';
 import '../../l10n/l10n.dart';
+import 'theme_toggle.dart';
 
 /// Public-facing scaffold: minimal top bar (logo + language toggle) and a
 /// bottom navigation bar (Home / Services / Booking / Cabinet).
@@ -55,7 +56,7 @@ class PageShell extends ConsumerWidget {
       scroller = RefreshIndicator(
         onRefresh: onRefresh!,
         color: AppColors.gold,
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.surface,
         child: scroller,
       );
     }
@@ -106,7 +107,10 @@ class _TopBar extends StatelessWidget {
           child: const Text(BusinessInfo.name,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.gold)),
         ),
-        const _LanguageToggle(),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [ThemeToggle(), _LanguageToggle()],
+        ),
       ],
     );
   }

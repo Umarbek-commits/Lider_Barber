@@ -22,9 +22,9 @@ class MastersSection extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(
+            Expanded(
               child: Text('Барберы входят по email и паролю и принимают записи.',
-                  style: TextStyle(color: Colors.white60)),
+                  style: TextStyle(color: context.faint)),
             ),
             const SizedBox(width: 12),
             FilledButton.icon(
@@ -39,7 +39,7 @@ class MastersSection extends ConsumerWidget {
           loading: () => const SkeletonList(count: 2, cardHeight: 56),
           error: (e, _) => Text('Ошибка: $e'),
           data: (list) => list.isEmpty
-              ? const Text('Мастеров пока нет.', style: TextStyle(color: Colors.white60))
+              ? Text('Мастеров пока нет.', style: TextStyle(color: context.faint))
               : Column(
                   children: list
                       .map((b) => _BarberRow(
@@ -79,15 +79,15 @@ class _BarberRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 18,
-            backgroundColor: Color(0xFF262626),
+            backgroundColor: context.surfaceAlt,
             child: Icon(Icons.content_cut, size: 16, color: AppColors.gold),
           ),
           const SizedBox(width: 12),
@@ -95,17 +95,17 @@ class _BarberRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(barber.name ?? 'Мастер', style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(barber.phone, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text(barber.name ?? 'Мастер', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text(barber.phone, style: TextStyle(color: context.faint, fontSize: 12)),
                 if (rating != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Row(
                       children: [
                         Stars(rating: rating!.avg.round(), size: 14),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Text('${rating!.avg.toStringAsFixed(1)} (${rating!.count})',
-                            style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                            style: TextStyle(color: context.faint, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -148,7 +148,7 @@ class _AddBarberDialogState extends ConsumerState<_AddBarberDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surface,
       title: const Text('Новый мастер'),
       content: SizedBox(
         width: 400,
@@ -156,8 +156,8 @@ class _AddBarberDialogState extends ConsumerState<_AddBarberDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Мастер войдёт в панель по этим email и паролю.',
-                style: TextStyle(color: Colors.white60, fontSize: 13)),
+            Text('Мастер войдёт в панель по этим email и паролю.',
+                style: TextStyle(color: context.faint, fontSize: 13)),
             const SizedBox(height: 14),
             TextField(controller: _name, decoration: const InputDecoration(labelText: 'Имя мастера')),
             const SizedBox(height: 10),

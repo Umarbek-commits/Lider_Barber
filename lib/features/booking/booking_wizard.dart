@@ -99,9 +99,9 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,9 +124,9 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Column(
         children: [
@@ -140,7 +140,7 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
             onPressed: () => ref.read(authControllerProvider).signInWithGoogle(),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              side: const BorderSide(color: Colors.white24),
+              side: BorderSide(color: context.border),
             ),
             icon: const Text('G', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
             label: Text(t.signInGoogle),
@@ -159,12 +159,12 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
           margin: EdgeInsets.only(right: i == steps.length - 1 ? 0 : 8),
           padding: EdgeInsets.symmetric(vertical: 10, horizontal: isMobile ? 12 : 8),
           decoration: BoxDecoration(
-            color: active ? AppColors.gold : Colors.white10,
+            color: active ? AppColors.gold : context.border,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(steps[i],
               style: TextStyle(
-                  color: active ? Colors.black : Colors.white70, fontWeight: FontWeight.w600)),
+                  color: active ? Colors.black : context.muted, fontWeight: FontWeight.w600)),
         );
         return isMobile ? chip : Expanded(child: Center(child: chip));
       }),
@@ -198,9 +198,9 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
                   width: isMobile ? double.infinity : 220,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.surfaceRaised : const Color(0xFF161616),
+                    color: selected ? context.surfaceAlt : context.surfaceAlt,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: selected ? AppColors.gold : Colors.white12),
+                    border: Border.all(color: selected ? AppColors.gold : context.border),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,9 +215,9 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
                                   color: AppColors.gold,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13)),
-                          const SizedBox(width: 10),
+                          SizedBox(width: 10),
                           Text('${s.durationMin} ${t.minutesShort}',
-                              style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                              style: TextStyle(color: context.faint, fontSize: 12)),
                         ],
                       ),
                     ],
@@ -280,7 +280,7 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
               padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
           error: (e, _) => Text(t.error(e)),
           data: (list) => list.isEmpty
-              ? Text(t.noSlots, style: const TextStyle(color: Colors.white70))
+              ? Text(t.noSlots, style: TextStyle(color: context.muted))
               : Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -360,7 +360,7 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
         ),
       BookingOutcome.notConfigured => (
           Icons.info_outline_rounded,
-          Colors.white70,
+          context.muted,
           'Demo',
           '',
         ),
@@ -377,8 +377,8 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
           Icon(icon, size: 56, color: color),
         const SizedBox(height: 12),
         Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+        SizedBox(height: 8),
+        Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: context.muted)),
         if (ok) ...[
           const SizedBox(height: 8),
           Text(_service?.name ?? '', style: const TextStyle(color: AppColors.gold)),

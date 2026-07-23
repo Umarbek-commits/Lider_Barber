@@ -25,14 +25,14 @@ class NewsPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Объявления видят все клиенты на главной. Выключенные — скрыты.',
-              style: TextStyle(color: Colors.white60)),
+          Text('Объявления видят все клиенты на главной. Выключенные — скрыты.',
+              style: TextStyle(color: context.faint)),
           const SizedBox(height: 12),
           news.when(
             loading: () => const SkeletonList(count: 3, cardHeight: 72),
             error: (e, _) => Text('Ошибка: $e'),
             data: (list) => list.isEmpty
-                ? const Text('Объявлений пока нет', style: TextStyle(color: Colors.white60))
+                ? Text('Объявлений пока нет', style: TextStyle(color: context.faint))
                 : Column(
                     children: list.map((n) => _NewsRow(item: n)).toList(),
                   ),
@@ -48,7 +48,7 @@ class NewsPage extends ConsumerWidget {
     final text = await showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.surface,
         title: const Text('Новое объявление'),
         content: TextField(
           controller: ctrl,
@@ -85,22 +85,22 @@ class _NewsRow extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: item.isActive ? AppColors.gold.withValues(alpha: 0.4) : Colors.white12),
+        border: Border.all(color: item.isActive ? AppColors.gold.withValues(alpha: 0.4) : context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(item.text),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             children: [
               Text(DateFormat('d.MM.yy').format(item.createdAt),
-                  style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                  style: TextStyle(color: context.fainter, fontSize: 12)),
               const Spacer(),
               Text(item.isActive ? 'Показывается' : 'Скрыто',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  style: TextStyle(color: context.faint, fontSize: 12)),
               Switch(
                 value: item.isActive,
                 onChanged: (v) async {

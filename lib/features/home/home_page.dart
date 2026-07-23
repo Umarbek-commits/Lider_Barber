@@ -44,8 +44,8 @@ class HomePage extends ConsumerWidget {
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 24 : 40),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.headerTop, AppColors.headerBottom],
+        gradient: LinearGradient(
+          colors: [context.surfaceAlt, context.surface],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -59,8 +59,8 @@ class HomePage extends ConsumerWidget {
               style: TextStyle(fontSize: isMobile ? 30 : 40, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(t.heroSubtitle, style: const TextStyle(fontSize: 18, color: AppColors.gold)),
-          const SizedBox(height: 12),
-          Text(t.heroText, style: const TextStyle(height: 1.6, color: Colors.white70)),
+          SizedBox(height: 12),
+          Text(t.heroText, style: TextStyle(height: 1.6, color: context.muted)),
           const SizedBox(height: 20),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 360),
@@ -83,7 +83,7 @@ class HomePage extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           FilledButton.icon(
             onPressed: () => context.go('/book'),
             icon: const Icon(Icons.arrow_forward_rounded),
@@ -114,9 +114,9 @@ class _NewsBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(Icons.campaign_rounded, color: AppColors.gold, size: 22),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white, height: 1.4)),
+            child: Text(text, style: TextStyle(color: context.strong, height: 1.4)),
           ),
         ],
       ),
@@ -146,7 +146,7 @@ class _ContactTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
+          color: context.strong.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
         ),
@@ -169,8 +169,8 @@ class _ContactTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(color: context.faint, fontSize: 12)),
                 ],
               ),
             ),

@@ -23,8 +23,8 @@ class DashboardTab extends ConsumerWidget {
       children: [
         const Text('Дашборд', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
-        const Text('Клиенты и доход. Доход считается по выполненным записям.',
-            style: TextStyle(color: Colors.white60)),
+        Text('Клиенты и доход. Доход считается по выполненным записям.',
+            style: TextStyle(color: context.faint)),
         const SizedBox(height: 20),
         ...ranges.entries.map((e) => _StatsBlock(title: e.key, range: e.value)),
       ],
@@ -46,9 +46,9 @@ class _StatsBlock extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,10 +92,10 @@ class _Metric extends StatelessWidget {
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
-                color: highlight ? AppColors.gold : Colors.white,
+                color: highlight ? AppColors.gold : context.strong,
               )),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white60)),
+          SizedBox(height: 4),
+          Text(label, style: TextStyle(color: context.faint)),
         ],
       );
 }

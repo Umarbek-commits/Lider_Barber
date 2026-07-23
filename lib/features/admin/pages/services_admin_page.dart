@@ -33,14 +33,14 @@ class ServicesAdminPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Цены и услуги, которые видят клиенты. Выключенные скрыты.',
-              style: TextStyle(color: Colors.white60)),
+          Text('Цены и услуги, которые видят клиенты. Выключенные скрыты.',
+              style: TextStyle(color: context.faint)),
           const SizedBox(height: 12),
           services.when(
             loading: () => const SkeletonList(count: 4, cardHeight: 64),
             error: (e, _) => Text('Ошибка: $e'),
             data: (list) => list.isEmpty
-                ? const Text('Услуг пока нет', style: TextStyle(color: Colors.white60))
+                ? Text('Услуг пока нет', style: TextStyle(color: context.faint))
                 : Column(
                     children: list
                         .map((s) => _ServiceRow(
@@ -96,9 +96,9 @@ class _ServiceRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: service.isActive ? Colors.white12 : Colors.white10),
+        border: Border.all(color: service.isActive ? context.border : context.border),
       ),
       child: Row(
         children: [
@@ -109,15 +109,15 @@ class _ServiceRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(service.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text('${service.priceSom} сом • ${service.durationMin} мин',
-                      style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                      style: TextStyle(color: context.faint, fontSize: 12)),
                 ],
               ),
             ),
           ),
           Switch(value: service.isActive, onChanged: onToggle),
-          IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined, color: Colors.white70)),
+          IconButton(onPressed: onEdit, icon: Icon(Icons.edit_outlined, color: context.muted)),
           IconButton(
               onPressed: onDelete,
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent)),
@@ -156,7 +156,7 @@ class _ServiceDialogState extends ConsumerState<_ServiceDialog> {
   Widget build(BuildContext context) {
     final editing = widget.service != null;
     return AlertDialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surface,
       title: Text(editing ? 'Изменить услугу' : 'Новая услуга'),
       content: SizedBox(
         width: 380,

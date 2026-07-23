@@ -87,7 +87,7 @@ class _ScheduleTabState extends ConsumerState<ScheduleTab> {
                 padding: EdgeInsets.all(20), child: SkeletonList(count: 5, cardHeight: 72)),
             error: (e, _) => Center(child: Text('Ошибка: $e')),
             data: (list) => list.isEmpty
-                ? const Center(child: Text('На этот день записей нет', style: TextStyle(color: Colors.white60)))
+                ? Center(child: Text('На этот день записей нет', style: TextStyle(color: context.faint)))
                 : ListView.separated(
                     padding: const EdgeInsets.all(20),
                     itemCount: list.length,
@@ -153,17 +153,17 @@ class _BookingRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Row(
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(booking.startTime, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.gold)),
-              Text(booking.endTime, style: const TextStyle(fontSize: 12, color: Colors.white38)),
+              Text(booking.startTime, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.gold)),
+              Text(booking.endTime, style: TextStyle(fontSize: 12, color: context.fainter)),
             ],
           ),
           const SizedBox(width: 14),
@@ -172,20 +172,20 @@ class _BookingRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(booking.clientName ?? '—', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text('${booking.serviceName ?? ''} • ${booking.clientPhone ?? ''}',
-                    style: const TextStyle(color: Colors.white60, fontSize: 13)),
+                    style: TextStyle(color: context.faint, fontSize: 13)),
                 if ((booking.comment ?? '').trim().isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.chat_bubble_outline, size: 13, color: Colors.white38),
+                      Icon(Icons.chat_bubble_outline, size: 13, color: context.fainter),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text('«${booking.comment!.trim()}»',
-                            style: const TextStyle(
-                                color: Colors.white70,
+                            style: TextStyle(
+                                color: context.muted,
                                 fontSize: 13,
                                 fontStyle: FontStyle.italic)),
                       ),
@@ -281,7 +281,7 @@ class _AddBookingDialogState extends ConsumerState<_AddBookingDialog> {
           )));
 
     return AlertDialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surface,
       title: const Text('Новая запись'),
       content: SizedBox(
         width: 380,
@@ -308,7 +308,7 @@ class _AddBookingDialogState extends ConsumerState<_AddBookingDialog> {
                   loading: () => const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator()),
                   error: (e, _) => Text('Слоты: $e'),
                   data: (list) => list.isEmpty
-                      ? const Text('Свободных слотов нет', style: TextStyle(color: Colors.white60))
+                      ? Text('Свободных слотов нет', style: TextStyle(color: context.faint))
                       : Wrap(
                           spacing: 8,
                           runSpacing: 8,
@@ -414,7 +414,7 @@ class _MoveBookingDialogState extends ConsumerState<_MoveBookingDialog> {
     )));
 
     return AlertDialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surface,
       title: const Text('Перенести запись'),
       content: SizedBox(
         width: 380,
@@ -423,7 +423,7 @@ class _MoveBookingDialogState extends ConsumerState<_MoveBookingDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Дата', style: TextStyle(color: Colors.white60)),
+              Text('Дата', style: TextStyle(color: context.faint)),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 8,
@@ -437,14 +437,14 @@ class _MoveBookingDialogState extends ConsumerState<_MoveBookingDialog> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 12),
-              const Text('Время', style: TextStyle(color: Colors.white60)),
+              SizedBox(height: 12),
+              Text('Время', style: TextStyle(color: context.faint)),
               const SizedBox(height: 6),
               slots.when(
                 loading: () => const LinearProgressIndicator(),
                 error: (e, _) => Text('Слоты: $e'),
                 data: (list) => list.isEmpty
-                    ? const Text('Свободных слотов нет', style: TextStyle(color: Colors.white60))
+                    ? Text('Свободных слотов нет', style: TextStyle(color: context.faint))
                     : Wrap(
                         spacing: 8,
                         runSpacing: 8,

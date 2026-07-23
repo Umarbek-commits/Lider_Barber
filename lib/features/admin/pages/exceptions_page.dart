@@ -24,14 +24,14 @@ class ExceptionsPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Разовые изменения на конкретную дату (выходной или другие часы).',
-              style: TextStyle(color: Colors.white60)),
+          Text('Разовые изменения на конкретную дату (выходной или другие часы).',
+              style: TextStyle(color: context.faint)),
           const SizedBox(height: 12),
           exceptions.when(
             loading: () => const SkeletonList(count: 3, cardHeight: 52),
             error: (e, _) => Text('Ошибка: $e'),
             data: (list) => list.isEmpty
-                ? const Text('Исключений нет', style: TextStyle(color: Colors.white60))
+                ? Text('Исключений нет', style: TextStyle(color: context.faint))
                 : Column(
                     children: list
                         .map((e) => _ExceptionRow(
@@ -69,9 +69,9 @@ class _ExceptionRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: context.border),
       ),
       child: Row(
         children: [
@@ -106,7 +106,7 @@ class _AddExceptionDialogState extends ConsumerState<_AddExceptionDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.surface,
       title: const Text('Исключение'),
       content: SizedBox(
         width: 360,
