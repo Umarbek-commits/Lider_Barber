@@ -5,6 +5,7 @@ import '../../../app/theme.dart';
 import '../pages/exceptions_page.dart';
 import '../pages/masters_page.dart';
 import '../pages/news_page.dart';
+import '../pages/services_admin_page.dart';
 import '../pages/working_hours_page.dart';
 
 /// Settings menu — each item opens its own page.
@@ -19,6 +20,12 @@ class SettingsTab extends ConsumerWidget {
         title: 'Мастера',
         subtitle: 'Добавить барберов и управлять доступом',
         page: const MastersPage(),
+      ),
+      _SettingsItem(
+        icon: Icons.design_services,
+        title: 'Услуги',
+        subtitle: 'Услуги, цены и длительность',
+        page: const ServicesAdminPage(),
       ),
       _SettingsItem(
         icon: Icons.schedule,

@@ -6,6 +6,7 @@ import '../models/client.dart';
 import '../models/news_item.dart';
 import '../models/schedule.dart';
 import '../models/schedule_exception.dart';
+import '../models/service.dart';
 import 'admin_repository.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((_) => const AdminRepository());
@@ -48,6 +49,10 @@ final adminBarbersProvider = FutureProvider<List<AppUser>>((ref) {
 
 final adminNewsProvider = FutureProvider<List<NewsItem>>((ref) {
   return ref.watch(adminRepositoryProvider).news();
+});
+
+final adminServicesProvider = FutureProvider<List<Service>>((ref) {
+  return ref.watch(adminRepositoryProvider).allServices();
 });
 
 final barberRatingsProvider =

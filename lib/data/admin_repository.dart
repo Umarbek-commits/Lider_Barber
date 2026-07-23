@@ -9,6 +9,7 @@ import '../models/client.dart';
 import '../models/news_item.dart';
 import '../models/schedule.dart';
 import '../models/schedule_exception.dart';
+import '../models/service.dart';
 
 /// Aggregate numbers for the dashboard over a date range.
 class DashboardStats {
@@ -249,6 +250,49 @@ class AdminRepository {
 
   Future<void> deleteException(String id) async {
     await supabase.from('schedule_exceptions').delete().eq('id', id);
+  }
+
+  // --- Services --------------------------------------------------------------
+
+  /// All services including inactive ones (admin view).
+  Future<List<Service>> allServices() async {
+    final rows = await supabase.from('services').select().order('sort_order');
+    return rows.map((r) => Service.fromMap(r)).toList();
+  }
+
+  /// Create ([id] null) or update a service.
+  Future<void> saveService({
+    String? id,
+    required String name,
+    required int priceSom,
+    required int durationMin,
+    String? description,
+    int? sortOrder,
+    bool isActive = true,
+  }) async {
+    final data = {
+      'name': name,
+      'price_som': priceSom,
+      'duration_min': durationMin,
+      'description': description,
+      'is_active': isActive,
+      'sort_order': ?sortOrder,
+    };
+    if (id == null) {
+      await supabase.from('services').insert(data);
+    } else {
+      await supabase.from('services').update(data).eq('id', id);
+    }
+  }
+
+  Future<void> setServiceActive(String id, bool active) async {
+    await supabase.from('services').update({'is_active': active}).eq('id', id);
+  }
+
+  /// Hard-delete a service. Throws if it is referenced by existing bookings
+  /// (deactivate it instead in that case).
+  Future<void> deleteService(String id) async {
+    await supabase.from('services').delete().eq('id', id);
   }
 
   // --- News ------------------------------------------------------------------
