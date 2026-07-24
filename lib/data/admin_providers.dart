@@ -4,6 +4,7 @@ import '../models/app_user.dart';
 import '../models/booking.dart';
 import '../models/client.dart';
 import '../models/news_item.dart';
+import '../models/promo_code.dart';
 import '../models/schedule.dart';
 import '../models/schedule_exception.dart';
 import '../models/service.dart';
@@ -53,6 +54,14 @@ final adminNewsProvider = FutureProvider<List<NewsItem>>((ref) {
 
 final adminServicesProvider = FutureProvider<List<Service>>((ref) {
   return ref.watch(adminRepositoryProvider).allServices();
+});
+
+final adminPromoCodesProvider = FutureProvider<List<PromoCode>>((ref) {
+  return ref.watch(adminRepositoryProvider).promoCodes();
+});
+
+final cashbackPctProvider = FutureProvider<int>((ref) {
+  return ref.watch(adminRepositoryProvider).cashbackPct();
 });
 
 final barberRatingsProvider =

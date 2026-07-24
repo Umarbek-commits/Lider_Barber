@@ -177,6 +177,10 @@ class _ClientCard extends ConsumerWidget {
                   _mini(context, 'Визитов', '${client.visitsCount}'),
                   const SizedBox(width: 20),
                   _mini(context, 'Потрачено', '${client.totalSpent} сом'),
+                  if (client.bonusSom > 0) ...[
+                    const SizedBox(width: 20),
+                    _mini(context, 'Бонусы', '${client.bonusSom} сом'),
+                  ],
                   if (client.penaltySom > 0) ...[
                     const SizedBox(width: 20),
                     _mini(context, 'Штрафы', '${client.penaltySom} сом', danger: true),

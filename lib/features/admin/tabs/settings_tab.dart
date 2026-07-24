@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
+import '../pages/bonuses_admin_page.dart';
 import '../pages/exceptions_page.dart';
 import '../pages/masters_page.dart';
 import '../pages/news_page.dart';
+import '../pages/promos_admin_page.dart';
 import '../pages/services_admin_page.dart';
 import '../pages/working_hours_page.dart';
 
@@ -44,6 +46,18 @@ class SettingsTab extends ConsumerWidget {
         title: 'Новости',
         subtitle: 'Объявления для клиентов на главной',
         page: const NewsPage(),
+      ),
+      _SettingsItem(
+        icon: Icons.card_giftcard,
+        title: 'Бонусы',
+        subtitle: 'Кэшбэк клиентам за визиты',
+        page: const BonusesAdminPage(),
+      ),
+      _SettingsItem(
+        icon: Icons.local_offer,
+        title: 'Промокоды',
+        subtitle: 'Скидочные коды для клиентов',
+        page: const PromosAdminPage(),
       ),
     ];
 

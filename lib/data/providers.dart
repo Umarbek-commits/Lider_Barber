@@ -7,6 +7,7 @@ import '../features/booking/booking_logic.dart';
 import '../models/app_user.dart';
 import '../models/booking.dart';
 import '../models/news_item.dart';
+import '../models/promo_code.dart';
 import '../models/service.dart';
 import 'booking_repository.dart';
 import 'catalog_repository.dart';
@@ -29,6 +30,38 @@ final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
 
 final servicesProvider = FutureProvider<List<Service>>((ref) {
   return ref.watch(catalogRepositoryProvider).activeServices();
+});
+
+/// The signed-in client's bonus balance + penalties (сом).
+final myBonusesProvider = FutureProvider<({int bonus, int penalty})>((ref) async {
+  ref.watch(authStateProvider);
+  if (!Env.hasSupabase || maybeCurrentUser == null) return (bonus: 0, penalty: 0);
+  final rows = await supabase.rpc('my_bonuses') as List;
+  if (rows.isEmpty) return (bonus: 0, penalty: 0);
+  final r = rows.first as Map<String, dynamic>;
+  return (
+    bonus: (r['bonus_som'] as num?)?.toInt() ?? 0,
+    penalty: (r['penalty_som'] as num?)?.toInt() ?? 0,
+  );
+});
+
+/// Cashback percent (public app setting), for the client bonuses page/booking.
+final publicCashbackPctProvider = FutureProvider<int>((ref) async {
+  if (!Env.hasSupabase) return 0;
+  final row =
+      await supabase.from('app_settings').select('cashback_pct').eq('id', 1).maybeSingle();
+  return (row?['cashback_pct'] as num?)?.toInt() ?? 0;
+});
+
+/// Active promo codes clients can see/use.
+final activePromosProvider = FutureProvider<List<PromoCode>>((ref) async {
+  if (!Env.hasSupabase) return const [];
+  final rows = await supabase
+      .from('promo_codes')
+      .select()
+      .eq('is_active', true)
+      .order('discount_som', ascending: false);
+  return rows.map((r) => PromoCode.fromMap(r)).toList();
 });
 
 /// Active announcements shown to clients on the home screen.

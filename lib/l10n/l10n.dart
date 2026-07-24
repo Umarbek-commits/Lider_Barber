@@ -120,9 +120,21 @@ class T {
       );
 
   // Account / cabinet
+  String get cabinet => _('Кабинет', 'Кабинет');
   String get myBookings => _('Мои записи', 'Менин жазылууларым');
+  String get myBonuses => _('Мои бонусы', 'Менин бонустарым');
+  String get promos => _('Акции и промокоды', 'Акциялар жана промокоддор');
+  String get bonusesLabel => _('Бонусы', 'Бонустар');
+  String get penaltiesLabel => _('Штрафы', 'Айыптар');
+  String cashbackInfo(int pct) =>
+      _('Получай $pct% бонусами за каждую стрижку', 'Ар бир чач тарап үчүн $pct% бонус ал');
+  String get noPromos => _('Активных акций пока нет', 'Азырынча акциялар жок');
+  String get promoField => _('Промокод (если есть)', 'Промокод (болсо)');
+  String promoApplied(int som) => _('Промокод применён: −$som сом', 'Промокод колдонулду: −$som сом');
+  String get promoInvalid => _('Промокод не найден', 'Промокод табылган жок');
   String get refresh => _('Обновить', 'Жаңыртуу');
   String get signOut => _('Выйти', 'Чыгуу');
+  String get open => _('Открыть', 'Ачуу');
   String get noBookings =>
       _('У вас пока нет записей.', 'Сизде азырынча жазылуу жок.');
   String get bookAction => _('Записаться', 'Жазылуу');

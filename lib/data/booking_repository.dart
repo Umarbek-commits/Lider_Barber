@@ -15,6 +15,7 @@ abstract class BookingRepository {
     required String name,
     required String phone,
     String? comment,
+    String? promoCode,
   });
 }
 
@@ -33,6 +34,7 @@ class SeedBookingRepository implements BookingRepository {
     required String name,
     required String phone,
     String? comment,
+    String? promoCode,
   }) async =>
       BookingOutcome.notConfigured;
 }
@@ -67,6 +69,7 @@ class SupabaseBookingRepository implements BookingRepository {
     required String name,
     required String phone,
     String? comment,
+    String? promoCode,
   }) async {
     try {
       await supabase.rpc('create_booking', params: {
@@ -76,6 +79,7 @@ class SupabaseBookingRepository implements BookingRepository {
         'p_name': name,
         'p_phone': phone,
         'p_comment': comment,
+        'p_promo': promoCode,
       });
       return BookingOutcome.success;
     } catch (e) {

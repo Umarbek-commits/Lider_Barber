@@ -35,6 +35,10 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _commentCtrl = TextEditingController();
+  final _promoCtrl = TextEditingController();
+  int _promoDiscount = 0;
+  String? _promoMsg;
+  bool _checkingPromo = false;
 
   @override
   void initState() {
@@ -48,7 +52,26 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _commentCtrl.dispose();
+    _promoCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _applyPromo(T t) async {
+    final code = _promoCtrl.text.trim();
+    if (code.isEmpty) return;
+    setState(() => _checkingPromo = true);
+    try {
+      final res = await supabase.rpc('promo_discount', params: {'p_code': code});
+      final discount = (res as num?)?.toInt() ?? 0;
+      setState(() {
+        _promoDiscount = discount;
+        _promoMsg = discount > 0 ? t.promoApplied(discount) : t.promoInvalid;
+      });
+    } catch (_) {
+      setState(() => _promoMsg = t.promoInvalid);
+    } finally {
+      if (mounted) setState(() => _checkingPromo = false);
+    }
   }
 
   void _go(int step) => setState(() => _step = step);
@@ -64,6 +87,7 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
           name: _nameCtrl.text.trim(),
           phone: _phoneCtrl.text.trim(),
           comment: _commentCtrl.text.trim().isEmpty ? null : _commentCtrl.text.trim(),
+          promoCode: _promoCtrl.text.trim().isEmpty ? null : _promoCtrl.text.trim(),
         );
     if (!mounted) return;
     setState(() {
@@ -337,6 +361,31 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
           maxLines: 3,
           decoration: InputDecoration(labelText: t.comment, border: const OutlineInputBorder()),
         ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _promoCtrl,
+          textCapitalization: TextCapitalization.characters,
+          onChanged: (_) => setState(() {
+            _promoDiscount = 0;
+            _promoMsg = null;
+          }),
+          decoration: InputDecoration(
+            labelText: t.promoField,
+            border: const OutlineInputBorder(),
+            suffixIcon: TextButton(
+              onPressed: _checkingPromo ? null : () => _applyPromo(t),
+              child: _checkingPromo
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('OK'),
+            ),
+          ),
+        ),
+        if (_promoMsg != null) ...[
+          const SizedBox(height: 6),
+          Text(_promoMsg!,
+              style: TextStyle(
+                  color: _promoDiscount > 0 ? AppColors.gold : Colors.redAccent, fontSize: 13)),
+        ],
         const SizedBox(height: 20),
         _nav(t, isMobile,
             onBack: () => _go(2),
@@ -396,11 +445,13 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
             const SizedBox(height: 4),
             Builder(builder: (_) {
               final extra = eveningSurcharge(_slot);
-              final total = _service!.priceSom + extra;
+              final total = _service!.priceSom + extra - _promoDiscount;
+              final parts = <String>[
+                if (extra > 0) 'вечерняя доплата +$extra',
+                if (_promoDiscount > 0) 'промокод −$_promoDiscount',
+              ];
               return Text(
-                extra > 0
-                    ? '$total сом (вечерняя доплата +$extra)'
-                    : '$total сом',
+                parts.isEmpty ? '$total сом' : '$total сом (${parts.join(', ')})',
                 style: TextStyle(color: context.muted, fontSize: 13),
               );
             }),

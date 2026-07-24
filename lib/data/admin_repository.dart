@@ -8,6 +8,7 @@ import '../models/booking.dart';
 import '../models/booking_status.dart';
 import '../models/client.dart';
 import '../models/news_item.dart';
+import '../models/promo_code.dart';
 import '../models/schedule.dart';
 import '../models/schedule_exception.dart';
 import '../models/service.dart';
@@ -155,7 +156,7 @@ class AdminRepository {
   Future<DashboardStats> stats(DateTime from, DateTime to) async {
     final rows = await supabase
         .from('bookings')
-        .select('status, start_time, services(price_som)')
+        .select('status, start_time, discount_som, services(price_som)')
         .gte('booking_date', date(from))
         .lte('booking_date', date(to))
         .neq('status', 'cancelled')
@@ -167,7 +168,10 @@ class AdminRepository {
       if (r['status'] == 'completed') {
         final price = (r['services'] as Map?)?['price_som'];
         if (price is num) {
-          revenue += price.toInt() + eveningSurcharge(r['start_time'] as String?);
+          final discount = (r['discount_som'] as num?)?.toInt() ?? 0;
+          revenue += price.toInt() +
+              eveningSurcharge(r['start_time'] as String?) -
+              discount;
         }
       }
     }
@@ -316,6 +320,37 @@ class AdminRepository {
 
   Future<void> deleteNews(String id) async {
     await supabase.from('news').delete().eq('id', id);
+  }
+
+  // --- Bonuses (cashback %) + promo codes ------------------------------------
+
+  Future<int> cashbackPct() async {
+    final row = await supabase.from('app_settings').select('cashback_pct').eq('id', 1).maybeSingle();
+    return (row?['cashback_pct'] as num?)?.toInt() ?? 0;
+  }
+
+  Future<void> setCashbackPct(int pct) async {
+    await supabase.from('app_settings').update({'cashback_pct': pct}).eq('id', 1);
+  }
+
+  Future<List<PromoCode>> promoCodes() async {
+    final rows = await supabase.from('promo_codes').select().order('created_at', ascending: false);
+    return rows.map((r) => PromoCode.fromMap(r)).toList();
+  }
+
+  Future<void> addPromo(String code, int discountSom) async {
+    await supabase.from('promo_codes').insert({
+      'code': code.trim().toUpperCase(),
+      'discount_som': discountSom,
+    });
+  }
+
+  Future<void> setPromoActive(String id, bool active) async {
+    await supabase.from('promo_codes').update({'is_active': active}).eq('id', id);
+  }
+
+  Future<void> deletePromo(String id) async {
+    await supabase.from('promo_codes').delete().eq('id', id);
   }
 
   static int _minutes(String hhmm) {
