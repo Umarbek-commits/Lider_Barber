@@ -82,13 +82,28 @@ class _ScheduleTabState extends ConsumerState<ScheduleTab> {
           ),
         ),
         Expanded(
-          child: bookings.when(
+          child: RefreshIndicator(
+            color: AppColors.gold,
+            backgroundColor: context.surface,
+            onRefresh: () async {
+              ref.invalidate(adminBookingsProvider(_day));
+              await ref.read(adminBookingsProvider(_day).future);
+            },
+            child: bookings.when(
             loading: () => const Padding(
                 padding: EdgeInsets.all(20), child: SkeletonList(count: 5, cardHeight: 72)),
-            error: (e, _) => Center(child: Text('Ошибка: $e')),
+            error: (e, _) => ListView(children: [Center(child: Text('Ошибка: $e'))]),
             data: (list) => list.isEmpty
-                ? Center(child: Text('На этот день записей нет', style: TextStyle(color: context.faint)))
+                ? ListView(children: [
+                    Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Center(
+                          child: Text('На этот день записей нет',
+                              style: TextStyle(color: context.faint))),
+                    ),
+                  ])
                 : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(20),
                     itemCount: list.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 10),
@@ -105,6 +120,7 @@ class _ScheduleTabState extends ConsumerState<ScheduleTab> {
                       onMove: () => _openMoveDialog(list[i]),
                     ),
                   ),
+          ),
           ),
         ),
       ],

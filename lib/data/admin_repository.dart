@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart' show SupabaseClient;
 
 import '../core/env.dart';
+import '../core/pricing.dart';
 import '../core/supabase_client.dart';
 import '../models/app_user.dart';
 import '../models/booking.dart';
@@ -154,7 +155,7 @@ class AdminRepository {
   Future<DashboardStats> stats(DateTime from, DateTime to) async {
     final rows = await supabase
         .from('bookings')
-        .select('status, services(price_som)')
+        .select('status, start_time, services(price_som)')
         .gte('booking_date', date(from))
         .lte('booking_date', date(to))
         .neq('status', 'cancelled')
@@ -165,7 +166,9 @@ class AdminRepository {
       clients++;
       if (r['status'] == 'completed') {
         final price = (r['services'] as Map?)?['price_som'];
-        if (price is num) revenue += price.toInt();
+        if (price is num) {
+          revenue += price.toInt() + eveningSurcharge(r['start_time'] as String?);
+        }
       }
     }
     return DashboardStats(clients: clients, revenue: revenue);

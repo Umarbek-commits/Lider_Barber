@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -169,22 +171,11 @@ class AccountPage extends ConsumerWidget {
   }
 
   Future<void> _cancel(BuildContext context, WidgetRef ref, T t, Booking b) async {
+    final withinHour =
+        _startOf(b).isBefore(DateTime.now().add(const Duration(hours: 1)));
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: context.surface,
-        title: Text(t.cancelQuestion),
-        content: Text(
-            '${DateFormat('d MMMM, EEEE', 'ru').format(b.bookingDate)} — ${b.startTime}\n${b.serviceName ?? ''}'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.no)),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(t.cancelYes),
-          ),
-        ],
-      ),
+      builder: (_) => _CancelDialog(booking: b, t: t, penalty: withinHour),
     );
     if (ok != true) return;
     try {
@@ -196,6 +187,93 @@ class AccountPage extends ConsumerWidget {
             .showSnackBar(SnackBar(content: Text('${t.cancelFailed}: $e')));
       }
     }
+  }
+}
+
+/// Cancel confirmation: shows a late-cancel penalty warning and keeps the
+/// destructive button disabled (grey) for 3 seconds so it isn't tapped by reflex.
+class _CancelDialog extends StatefulWidget {
+  const _CancelDialog({required this.booking, required this.t, required this.penalty});
+  final Booking booking;
+  final T t;
+  final bool penalty;
+
+  @override
+  State<_CancelDialog> createState() => _CancelDialogState();
+}
+
+class _CancelDialogState extends State<_CancelDialog> {
+  int _left = 3;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_left <= 1) {
+        t.cancel();
+        setState(() => _left = 0);
+      } else {
+        setState(() => _left -= 1);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = widget.t;
+    final b = widget.booking;
+    final ready = _left == 0;
+    return AlertDialog(
+      backgroundColor: context.surface,
+      title: Text(t.cancelQuestion),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('${DateFormat('d MMMM, EEEE', 'ru').format(b.bookingDate)} — ${b.startTime}'
+              '\n${b.serviceName ?? ''}'),
+          if (widget.penalty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(t.latePenalty,
+                        style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.no)),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: ready ? Colors.redAccent : context.surfaceAlt,
+            foregroundColor: ready ? Colors.white : context.faint,
+          ),
+          onPressed: ready ? () => Navigator.pop(context, true) : null,
+          child: Text(ready ? t.cancelYes : '${t.cancelYes} ($_left)'),
+        ),
+      ],
+    );
   }
 }
 

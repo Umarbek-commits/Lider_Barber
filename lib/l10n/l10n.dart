@@ -135,6 +135,12 @@ class T {
   String get cancelYes => _('Отменить запись', 'Жазылууну жокко чыгаруу');
   String get no => _('Нет', 'Жок');
   String get cancelFailed => _('Не удалось отменить', 'Жокко чыгаруу мүмкүн болбоду');
+  String get latePenalty => _(
+        'Отмена менее чем за час — штраф 50 сом.',
+        'Бир сааттан кем калганда жокко чыгаруу — айып 50 сом.',
+      );
+  String get eveningSurchargeNote =>
+      _('После 20:00 +50 сом', '20:00дөн кийин +50 сом');
   String get rate => _('Оценить', 'Баалоо');
   String get rateVisit => _('Оцените визит', 'Сапарды баалаңыз');
   String get reviewHint =>

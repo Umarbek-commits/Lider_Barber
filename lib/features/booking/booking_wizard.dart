@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
+import '../../core/pricing.dart';
 import '../../core/supabase_client.dart';
 import '../../data/booking_repository.dart';
 import '../../data/providers.dart';
@@ -183,6 +184,15 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(t.chooseService, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.nightlight_round, size: 14, color: AppColors.gold),
+              const SizedBox(width: 6),
+              Text('С 20:00 до 23:00 ко всем услугам +$eveningSurchargeSom сом',
+                  style: TextStyle(color: context.faint, fontSize: 12)),
+            ],
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 10,
@@ -382,6 +392,19 @@ class _BookingWizardState extends ConsumerState<BookingWizard> {
         if (ok) ...[
           const SizedBox(height: 8),
           Text(_service?.name ?? '', style: const TextStyle(color: AppColors.gold)),
+          if (_service != null && _slot != null) ...[
+            const SizedBox(height: 4),
+            Builder(builder: (_) {
+              final extra = eveningSurcharge(_slot);
+              final total = _service!.priceSom + extra;
+              return Text(
+                extra > 0
+                    ? '$total сом (вечерняя доплата +$extra)'
+                    : '$total сом',
+                style: TextStyle(color: context.muted, fontSize: 13),
+              );
+            }),
+          ],
         ],
         const SizedBox(height: 16),
         if (!ok)

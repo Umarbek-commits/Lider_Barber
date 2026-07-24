@@ -9,6 +9,7 @@ class Client {
     this.blacklistReason,
     this.visitsCount = 0,
     this.totalSpent = 0,
+    this.penaltySom = 0,
     this.lastVisit,
   });
 
@@ -20,6 +21,7 @@ class Client {
   final String? blacklistReason;
   final int visitsCount;
   final int totalSpent;
+  final int penaltySom;
   final DateTime? lastVisit;
 
   factory Client.fromMap(Map<String, dynamic> map) {
@@ -32,6 +34,7 @@ class Client {
       blacklistReason: map['blacklist_reason'] as String?,
       visitsCount: (map['visits_count'] as num?)?.toInt() ?? 0,
       totalSpent: (map['total_spent'] as num?)?.toInt() ?? 0,
+      penaltySom: (map['penalty_som'] as num?)?.toInt() ?? 0,
       lastVisit: map['last_visit'] == null
           ? null
           : DateTime.parse(map['last_visit'] as String),

@@ -177,6 +177,10 @@ class _ClientCard extends ConsumerWidget {
                   _mini(context, 'Визитов', '${client.visitsCount}'),
                   const SizedBox(width: 20),
                   _mini(context, 'Потрачено', '${client.totalSpent} сом'),
+                  if (client.penaltySom > 0) ...[
+                    const SizedBox(width: 20),
+                    _mini(context, 'Штрафы', '${client.penaltySom} сом', danger: true),
+                  ],
                 ],
               ),
               const Divider(height: 28),
@@ -302,10 +306,14 @@ class _ClientCard extends ConsumerWidget {
     if (context.mounted) Navigator.pop(context);
   }
 
-  Widget _mini(BuildContext context, String label, String value) => Column(
+  Widget _mini(BuildContext context, String label, String value, {bool danger = false}) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.gold)),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: danger ? Colors.redAccent : AppColors.gold)),
           Text(label, style: TextStyle(color: context.faint, fontSize: 12)),
         ],
       );
